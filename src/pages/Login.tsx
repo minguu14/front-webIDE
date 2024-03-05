@@ -64,6 +64,7 @@ export default function Login() {
           카카오계정으로 로그인
         </button>
       </div>
+      <div>test</div>
     </div>
   );
 }
