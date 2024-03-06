@@ -66,9 +66,11 @@ export default function FindIDPassword() {
           </div>
           <InputBox type={"number"} placeholder={"950205"} />
         </div>
-        <button className="w-96 h-11 rounded bg-blue-950 text-white">
-          완료
-        </button>
+        <Link to="/find-id&password/checkpassword">
+          <button className="w-96 h-11 rounded bg-blue-950 text-white">
+            완료
+          </button>
+        </Link>
       </div>
     </div>
   );
