@@ -36,6 +36,7 @@ export default function Membership() {
         <InputBox type={"number"} placeholder={"950205"} />
       </div>
       <button className="w-96 h-11 rounded bg-blue-950 text-white">완료</button>
+      <div></div>
     </div>
   );
 }
