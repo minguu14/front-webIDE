@@ -43,11 +43,11 @@ export default function Login() {
             <label htmlFor="id">로그인 유지</label>
           </div>
           <div className="flex flex-row text-gray-600">
-            <button className="flex">
+            <Link to="/find-id&password" className="flex">
               <div>아이디찾기</div>
               <div className="mx-2">/</div>
               <div>비밀번호찾기</div>
-            </button>
+            </Link>
           </div>
         </div>
         <button className="w-96 h-11 rounded bg-blue-950 text-white mb-4">
