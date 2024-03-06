@@ -1,5 +1,6 @@
 import React from "react";
 import InputBox from "../component/InputBox";
+import { Link } from "react-router-dom";
 
 export default function FindIDPassword() {
   return (
@@ -30,9 +31,11 @@ export default function FindIDPassword() {
           </div>
           <InputBox type={"number"} placeholder={"950205"} />
         </div>
-        <button className="w-96 h-11 rounded bg-blue-950 text-white">
-          완료
-        </button>
+        <Link to="/find-id&password/checkid">
+          <button className="w-96 h-11 rounded bg-blue-950 text-white">
+            완료
+          </button>
+        </Link>
       </div>
       <hr className="w-[1px] h-[380px] bg-gray-300 mx-12" />
       <div>
