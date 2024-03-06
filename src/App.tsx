@@ -6,7 +6,7 @@ import Membership from "./pages/Membership";
 import FindIDPassword from "./pages/FindIDPassword";
 import CheckID from "./pages/CheckID";
 import CheckPassword from "./pages/CheckPassword";
-
+import MyPage from "./pages/MyPage";
 function App() {
   return (
     <Routes>
@@ -19,6 +19,7 @@ function App() {
         path="find-id&password/checkpassword"
         element={<CheckPassword />}
       ></Route>
+      <Route path="/mypage" element={<MyPage />}></Route>
     </Routes>
   );
 }
