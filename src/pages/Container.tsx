@@ -1,50 +1,66 @@
-import { Link } from "react-router-dom"
-import ContainerCard from "../components/ContainerCard"
+import { Link } from "react-router-dom";
+import ContainerCard from "../components/ContainerCard";
+import addIcon from "../img/containerPage/icon_add.png";
+import logo from "../img/logo/ADHD Aspire, Dream, Honor, Discover.png";
+import InfoModal from "../components/Modal/InfoModal";
+import { useState } from "react";
+import CreateModal from "../components/Modal/CreateModal";
 
-const ContainerPage = () => {
+export default function ContainerPage(){
+    const [isInfoModal, setIsInfoModal] = useState(false);
+    const [isCreateModal, setIsCreateModal] = useState(false);
+
+    const openInfoModal = () => {
+        setIsInfoModal(true);
+    }
+
+    const openCreateModal = () => {
+        setIsCreateModal(true);
+    }
   return (
-    <div className="w-screen h-screen flex">
-        {/* NavBar */}
-        <nav className="border-2 p-2 w-80 h-full flex flex-col justify-between">
-            <div className="text-6xl text-center">
-                LOGO
+    <div className="w-screen h-scree">
+        {isCreateModal && <CreateModal setIsCreateModal={setIsCreateModal}/>}
+      <main className="w-full flex-1 bg-main-bg">
+        <div className="p-10 h-screen">
+          <section>
+            <div className="flex justify-between">
+              <div>
+                <img src={logo}
+                alt="logo"
+                className="w-32 h-full"
+                />
+              </div>
+              <div className="flex items-center">
+                <img
+                  src="https://i.pinimg.com/originals/fb/8e/8a/fb8e8a96fca2f049334f312086a6e2f6.png"
+                  alt="logo"
+                  className="rounded-full border-2 w-10 mr-1 cursor-pointer"
+                  onClick={openInfoModal}
+                />
+                <div className="relative">
+                <p>@@님의 컨테이너</p>
+                {isInfoModal && <InfoModal setIsInfoModal={setIsInfoModal}/>}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-around">
-                <div className="flex items-center">
-                    <img 
-                    src="https://i.pinimg.com/originals/fb/8e/8a/fb8e8a96fca2f049334f312086a6e2f6.png"
-                    alt="logo"
-                    className="rounded-full border-2 w-10 mr-1"
-                    />
-                    <p className="font-medium">닉네임</p>
-                </div>
-                <Link to={"/"} className="font-medium">
-                    로그아웃
-                </Link>
+          </section>
+
+          <section>
+            <div className="border-gray-600 w-full rounded-md p-5 mt-5 mb-8 bg-gray-200">
+              <button className="rounded w-36 p-2 bg-blue-950 flex items-center" onClick={openCreateModal}>
+                <img src={addIcon} alt="add"/>
+                <p className="text-white">새 컨테이너</p>
+              </button>
             </div>
-        </nav>
-        {/* Main */}
-        <main className="w-full flex-1 bg-main-bg ml">
-            <section className="ml-8">
-                <div>
-                @@님의 컨테이너
-                </div>
-            </section>
+          </section>
 
-            <section className="ml-8 mb-32">
-                <div className="border-gray-600 w-full rounded-md p-5 mt-5 bg-gray-200">
-                  <button className="rounded w-36 p-2 bg-blue-600">
-                    <p className="text-white">★ 새 컨테이너</p>
-                  </button> 
-                </div>
-            </section>
-
-            <section className="ml-8 flex flex-wrap gap-3">
-                <ContainerCard/>
-            </section>
-        </main>
+          <section className="flex flex-wrap gap-10">
+            <ContainerCard />
+            <ContainerCard />
+            <ContainerCard />
+          </section>
+        </div>
+      </main>
     </div>
-  )
-}
-
-export default ContainerPage
+  );
+};
