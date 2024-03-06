@@ -1,7 +1,5 @@
 const ContainerPage = () => {
-  return (
-    <div>ContainerPagedsds</div>
-  )
-}
+  return <div>ContainerPagedsds</div>;
+};
 
-export default ContainerPage
+export default ContainerPage;
