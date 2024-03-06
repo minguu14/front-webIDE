@@ -16,7 +16,7 @@ export default function Login() {
         <div>Logo</div>
         <div className="font-medium mb-12">
           회원이 아니신가요?
-          <Link to="/" className="text-sky-500 font-semibold pl-2">
+          <Link to="/membership" className="text-sky-500 font-semibold pl-2">
             회원가입
           </Link>
         </div>
@@ -24,12 +24,12 @@ export default function Login() {
           <input
             type="text"
             placeholder="이메일"
-            className="w-96 h-11 border-2 rounded p-8 mb-4"
+            className="w-96 h-11 border-2 rounded p-7 mb-4"
           />
           <input
             type="password"
             placeholder="비밀번호"
-            className="w-96 h-11 border-2 rounded p-8"
+            className="w-96 h-11 border-2 rounded p-7"
           />
         </div>
         <div className="w-full flex justify-between mb-8">
@@ -64,7 +64,6 @@ export default function Login() {
           카카오계정으로 로그인
         </button>
       </div>
-      <div>test</div>
     </div>
   );
 }
