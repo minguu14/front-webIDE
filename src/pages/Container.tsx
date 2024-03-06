@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+
 import ContainerCard from "../components/ContainerCard";
 import addIcon from "../img/containerPage/icon_add.png";
 import logo from "../img/logo/ADHD Aspire, Dream, Honor, Discover.png";
@@ -6,10 +6,23 @@ import InfoModal from "../components/Modal/InfoModal";
 import { useState } from "react";
 import CreateModal from "../components/Modal/CreateModal";
 
+export interface ContainerListType{
+  id: string;
+  title: string;
+  stack: string;
+  performance: string;
+}
+
 export default function ContainerPage(){
     const [isInfoModal, setIsInfoModal] = useState(false);
     const [isCreateModal, setIsCreateModal] = useState(false);
-
+    const [containerLists, setContainerLists] = useState([{
+      id: "1",
+      title: "first",
+      stack: "HTML/CSS/JS",
+      performance: "@ 0.5vCPU @ 1GB",
+    },
+  ]);
     const openInfoModal = () => {
         setIsInfoModal(true);
     }
@@ -19,7 +32,11 @@ export default function ContainerPage(){
     }
   return (
     <div className="w-screen h-scree">
-        {isCreateModal && <CreateModal setIsCreateModal={setIsCreateModal}/>}
+        {isCreateModal && <CreateModal 
+        setIsCreateModal={setIsCreateModal}
+        setContainerLists={setContainerLists}
+        containerLists={containerLists}
+        />}
       <main className="w-full flex-1 bg-main-bg">
         <div className="p-10 h-screen">
           <section>
@@ -55,9 +72,17 @@ export default function ContainerPage(){
           </section>
 
           <section className="flex flex-wrap gap-10">
-            <ContainerCard />
-            <ContainerCard />
-            <ContainerCard />
+            {containerLists.map((list) => (
+              <ContainerCard
+              key={list.id}
+              id={list.id}
+              title={list.title}
+              stack={list.stack}
+              performance={list.performance}
+              containerLists={containerLists}
+              setContainerLists={setContainerLists}
+              />
+            ))}
           </section>
         </div>
       </main>
