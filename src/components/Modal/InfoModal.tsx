@@ -36,7 +36,7 @@ export default function InfoModal({setIsInfoModal}:InfoModalProps) {
                 alt="setting" 
                 className="w-6 mr-1"
                 />
-                <Link to={"/"}>마이페이지</Link>
+                <Link to={"/mypage"}>마이페이지</Link>
             </div>
         </div>
         <div className="flex items-center p-3 mt-5">

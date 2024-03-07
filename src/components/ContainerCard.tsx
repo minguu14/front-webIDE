@@ -1,18 +1,19 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch } from "react";
 import deleteIcon from "../img/containerPage/icon_delete.png";
+import { ContainerListType } from "../models/containerListsType";
 
 interface ContainerCardProps {
   id: string;
   title: string;
   stack: string;
   performance: string;
-  containerLists: any[];
-  setContainerLists: Dispatch<SetStateAction<{ id: string; title: string; stack: string; performance: string; }[]>>
+  containerLists: ContainerListType[];
+  setContainerLists: Dispatch<ContainerListType[]>
 }
 
 export default function ContainerCard({id, title, stack, performance, containerLists, setContainerLists}:ContainerCardProps){
   const deleteContainer = (id: string) => {
-    let newData =  containerLists.filter(list => list.id !== id);
+    const newData =  containerLists.filter(list => list.id !== id);
     setContainerLists(newData);
   }
   return (

@@ -1,10 +1,12 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, useState } from "react";
 import cancelIcon from "../../img/containerPage/icon_cancel.png";
+import { ContainerListType } from "../../models/containerListsType";
+import { v4 } from 'uuid';
 
 interface CreateModalProps {
     setIsCreateModal: React.Dispatch<React.SetStateAction<boolean>>
-    setContainerLists: Dispatch<SetStateAction<{ id: string; title: string; stack: string; performance: string; }[]>>
-    containerLists: any;
+    containerLists: ContainerListType[];
+    setContainerLists: Dispatch<ContainerListType[]>
 }
 export default function CreateModal({setIsCreateModal, setContainerLists, containerLists}: CreateModalProps) {
     const [stack, setStack] = useState("HTML/CSS/JS");
@@ -16,14 +18,13 @@ export default function CreateModal({setIsCreateModal, setContainerLists, contai
     }
 
     const createContainer = () => {
-        let newData = containerLists;
-        newData = {
-            id: new Date(),
+        const newData: ContainerListType = {
+            id: v4(),
             title: containerTitle,
             stack,
-            performance
+            performance,
         }
-        setContainerLists((prev) => [...prev, newData])
+        setContainerLists([...containerLists, newData])
         setIsCreateModal(false);
     }
   return (

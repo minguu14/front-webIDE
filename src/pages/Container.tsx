@@ -1,28 +1,17 @@
 
 import ContainerCard from "../components/ContainerCard";
 import addIcon from "../img/containerPage/icon_add.png";
-import logo from "../img/logo/ADHD Aspire, Dream, Honor, Discover.png";
+import ADHD from "../img/logo/ADHD Aspire, Dream, Honor, Discover.png";
 import InfoModal from "../components/Modal/InfoModal";
 import { useState } from "react";
 import CreateModal from "../components/Modal/CreateModal";
+import { ContainerListType } from "../models/containerListsType";
 
-export interface ContainerListType{
-  id: string;
-  title: string;
-  stack: string;
-  performance: string;
-}
 
 export default function ContainerPage(){
     const [isInfoModal, setIsInfoModal] = useState(false);
     const [isCreateModal, setIsCreateModal] = useState(false);
-    const [containerLists, setContainerLists] = useState([{
-      id: "1",
-      title: "first",
-      stack: "HTML/CSS/JS",
-      performance: "@ 0.5vCPU @ 1GB",
-    },
-  ]);
+    const [containerLists, setContainerLists] = useState<ContainerListType[]>([]);
     const openInfoModal = () => {
         setIsInfoModal(true);
     }
@@ -42,7 +31,7 @@ export default function ContainerPage(){
           <section>
             <div className="flex justify-between">
               <div>
-                <img src={logo}
+                <img src={ADHD}
                 alt="logo"
                 className="w-32 h-full"
                 />
