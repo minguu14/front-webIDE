@@ -12,12 +12,15 @@ export default function CreateModal({setIsCreateModal, setContainerLists, contai
     const [stack, setStack] = useState("HTML/CSS/JS");
     const [containerTitle, setContainerTitle] = useState("");
     const [performance, setPerformance] = useState("@ 0.5vCPU @ 1GB");
+    const [titleCheck, setTitleCheck] = useState(false);
 
     const closeCreateModal = () => {
         setIsCreateModal(false);
     }
 
     const createContainer = () => {
+        if(!titleCheck)
+        {
         const newData: ContainerListType = {
             id: v4(),
             title: containerTitle,
@@ -26,6 +29,7 @@ export default function CreateModal({setIsCreateModal, setContainerLists, contai
         }
         setContainerLists([...containerLists, newData])
         setIsCreateModal(false);
+        }
     }
   return (
     <div className="absolute inset-0 z-20 w-full bg-black/60 flex justify-center items-center">
@@ -45,7 +49,7 @@ export default function CreateModal({setIsCreateModal, setContainerLists, contai
                     id="stack" 
                     value={stack}
                     onChange={(e) => setStack(e.target.value)}
-                    className="border-2 rounded p-3 mb-4 focus:outline-none focus:border=2 focus:border-sky-500"
+                    className="border-2 rounded p-3 mb-4 focus:outline-none focus:border-2 focus:border-sky-500"
                     >
                         <option value="HTML/CSS/JS">HTML/CSS/JS</option>
                         <option value="REACT">REACT</option>
@@ -57,9 +61,18 @@ export default function CreateModal({setIsCreateModal, setContainerLists, contai
                     <span>컨테이너 이름</span>
                     <input 
                     type="text" 
-                    className="border-2 rounded p-3 mb-4 focus:outline-none focus:border=2 focus:border-sky-500"
-                    onChange={(e) => setContainerTitle(e.target.value)}
+                    className={`border-2 rounded mb-3 p-3 focus:outline-none focus:border-2 ${titleCheck ? "focus:border-red-500" : "focus:border-sky-500"}`}
+                    onChange={(e) => {
+                        if(containerTitle.length < 20){
+                            setTitleCheck(false);
+                        }else{
+                            setTitleCheck(true);
+                        }
+                        setContainerTitle(e.target.value);
+                    }}
+                    placeholder="20자 미만으로 입력해주세요"
                     />
+                    {titleCheck && <span className="mb-2 text-red-500 text-sm">20자 미만으로 입력해주세요.</span>}
                 </div>
                 <div className="flex flex-col mt-5">
                     <label htmlFor="performance">성능</label>
@@ -67,7 +80,7 @@ export default function CreateModal({setIsCreateModal, setContainerLists, contai
                     id="performance"
                     value={performance}
                     onChange={(e) => setPerformance(e.target.value)}
-                    className="border-2 rounded mb-4 p-3 focus:outline-none focus:border=2 focus:border-sky-500"
+                    className="border-2 rounded mb-4 p-3 focus:outline-none focus:border-2 focus:border-sky-500"
                     >
                     <option value="@ 0.5vCPU @ 1GB">Micro @ 0.5vCPU @ 1GB Memory</option>
                     <option value="@ 0.5vCPU @ 2GB">Micro @ 0.5vCPU @ 2GB Memory</option>
