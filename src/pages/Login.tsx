@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import googleLogo from "../../src/img/googleLogo.jpg";
 import kakao from "../img/Subtract.png";
