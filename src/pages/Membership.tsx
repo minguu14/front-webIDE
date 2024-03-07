@@ -1,7 +1,16 @@
 import React from "react";
 import InputBox from "../component/InputBox";
+import { useState } from "react";
+import PopUp from "../component/PopUp";
 
 export default function Membership() {
+  let [open, setOpen] = useState(false);
+
+  const changeEvent = () => {
+    setOpen(!open);
+  };
+
+  console.log(open);
   return (
     <div className="w-screen h-screen flex flex-col justify-center items-center">
       <header className="flex">
@@ -35,7 +44,13 @@ export default function Membership() {
         </div>
         <InputBox type={"number"} placeholder={"950205"} />
       </div>
-      <button className="w-96 h-11 rounded bg-blue-950 text-white">완료</button>
+      <button
+        className="w-96 h-11 rounded bg-blue-950 text-white"
+        onClick={changeEvent}
+      >
+        완료
+      </button>
+      {open && <PopUp />}
     </div>
   );
 }
