@@ -12,9 +12,12 @@ export default function CheckPassword({ foundIndex }: any) {
 
   const changePassword = () => {
     if (changePw === checkPw && foundIndex) {
-      const newFoundIndex = Object.assign(foundIndex);
-      newFoundIndex["password"] = checkPw;
-      dispatch(exchangePassword(newFoundIndex));
+      // const newFoundIndex = JSON.parse(JSON.stringify(foundIndex));
+
+      // newFoundIndex["password"] = checkPw;
+      dispatch(
+        exchangePassword({ foundIndex: foundIndex, newpassword: checkPw })
+      );
     }
   };
   return (
