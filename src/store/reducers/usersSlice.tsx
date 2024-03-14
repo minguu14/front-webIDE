@@ -27,10 +27,10 @@ export const usersSlice = createSlice({
     exchangePassword(state: Users[], action) {
       console.log(action.payload);
       const targetState = state.find(
-        (user) => user.loginId === action.payload.loginId
+        (user) => user.loginId === action.payload.foundIndex.loginId
       );
       if (targetState) {
-        targetState["password"] = action.payload.password;
+        targetState["password"] = action.payload.newpassword;
       }
     },
   },
