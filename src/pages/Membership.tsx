@@ -1,16 +1,42 @@
 import React from "react";
 import InputBox from "../component/InputBox";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import PopUp from "../component/PopUp";
+import { signup } from "../store/reducers/usersSlice";
+import { useAppDispatch, useAppSelector } from "../store/hook";
 
 export default function Membership() {
+  const dispatch = useAppDispatch();
+
+  const useridRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const birthDateRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+
   let [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userid, setUserid] = useState("");
+  const [password, setPassword] = useState("");
+  const [birthDate, setBirthDate] = useState("");
 
   const changeEvent = () => {
     setOpen(!open);
   };
 
-  console.log(open);
+  const signupApi = async () => {
+    dispatch(
+      signup({
+        name: name,
+        email: userEmail,
+        loginId: userid,
+        password: password,
+        birthDate: birthDate,
+      })
+    );
+  };
+
   return (
     <div>
       <div
@@ -29,34 +55,89 @@ export default function Membership() {
 
         <div>
           <div className="flex relative ">
+            이름
+            <div className="text-red-500 absolute left-7 bottom-1">*</div>
+          </div>
+          <input
+            type="name"
+            value={name}
+            placeholder={"이름"}
+            className="w-96 h-11 border-2 rounded p-6 mb-2"
+            ref={nameRef}
+            onChange={(e) => {
+              setName(e.target.value);
+            }}
+          />
+        </div>
+        <div>
+          <div className="flex relative ">
             이메일
             <div className="text-red-500 absolute left-10 bottom-1">*</div>
           </div>
-          <InputBox type={"text"} placeholder={"이메일"} />
+          <input
+            type="text"
+            value={userEmail}
+            placeholder="이메일"
+            className="w-96 h-11 border-2 rounded p-6 mb-2"
+            ref={emailRef}
+            onChange={(e) => {
+              setUserEmail(e.target.value);
+            }}
+          />
         </div>
         <div>
           <div className="flex relative">
             ID<div className="text-red-500 absolute left-3 bottom-1">*</div>
           </div>
-          <InputBox type={"text"} placeholder={"ID"} />
+          <input
+            type="text"
+            value={userid}
+            placeholder="ID"
+            className="w-96 h-11 border-2 rounded p-6 mb-2"
+            ref={useridRef}
+            onChange={(e) => {
+              setUserid(e.target.value);
+            }}
+          />
         </div>
         <div>
           <div className="flex relative">
             비밀번호
             <div className="text-red-500 absolute left-[54px] bottom-1">*</div>
           </div>
-          <InputBox type={"password"} placeholder={"비밀번호"} />
+          <input
+            type="password"
+            value={password}
+            placeholder="비밀번호"
+            className="w-96 h-11 border-2 rounded p-6 mb-2"
+            ref={passwordRef}
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+          />
         </div>
         <div className="mb-14">
           <div className="flex relative">
             생년월일 8자리
             <div className="text-red-500 absolute left-24 bottom-1">*</div>
           </div>
-          <InputBox type={"number"} placeholder={"950205"} />
+          <input
+            type="number"
+            value={birthDate}
+            placeholder="19950205"
+            className="w-96 h-11 border-2 rounded p-6 mb-2"
+            ref={birthDateRef}
+            onChange={(e) => {
+              setBirthDate(e.target.value);
+            }}
+          />
         </div>
         <button
           className="w-96 h-11 rounded bg-blue-950 text-white"
-          onClick={changeEvent}
+          onClick={() => {
+            signupApi();
+            changeEvent();
+          }}
         >
           완료
         </button>
