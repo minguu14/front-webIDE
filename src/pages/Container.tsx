@@ -42,7 +42,7 @@ export default function ContainerPage(){
                   onClick={openInfoModal}
                 />
                 <div className="relative">
-                <p>@@님의 컨테이너</p>
+                <p>test</p>
                 {isInfoModal && <InfoModal setIsInfoModal={setIsInfoModal}/>}
                 </div>
               </div>

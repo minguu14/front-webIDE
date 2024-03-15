@@ -7,12 +7,14 @@ import { v4 } from "uuid";
 type initialData = {
     treeItems: TreeItemData[];
     selectedItem: string | null;
+    selectedItemCode: string | undefined;
     editorCode?: string | undefined;
   }
 
 const initialState: initialData = {
     treeItems: [],
     selectedItem: "",
+    selectedItemCode: "",
     editorCode: "",
 }
 
@@ -22,7 +24,7 @@ export const editorSlice = createSlice({
     reducers: {
         addNewFolder: (state, action) => {
            const addFolderToParent = (parentId: string, newFolder: TreeItemData) => {
-                const updatedTreeItems:any = state.treeItems.map(item => {
+                const updatedTreeItems = state.treeItems.map(item => {
                     if (item.id === parentId && !item.label?.includes(".")) {
                       return {
                         ...item,
@@ -58,9 +60,9 @@ export const editorSlice = createSlice({
             if(action.payload?.includes(".")) return;
             const newFolder: TreeItemData = {
                 id: v4(),
+                type: "folder",
                 label: action.payload,
                 icon: "",
-                code: "",
                 children: [],
             }
             if(state.selectedItem){
@@ -71,7 +73,7 @@ export const editorSlice = createSlice({
         },
         addNewFile: (state, action) => {
             const addFolderToParent = (parentId: string, newFolder: TreeItemData) => {
-                const updatedTreeItems:any = state.treeItems.map(item => {
+                const updatedTreeItems = state.treeItems.map(item => {
                     if (item.id === parentId && !item.label?.includes(".")) {
                       return {
                         ...item,
@@ -107,8 +109,9 @@ export const editorSlice = createSlice({
             if(action.payload?.includes(".")){
                 const newFolder: TreeItemData = {
                   id: v4(),
+                  type: "text",
                   label: action.payload,
-                  code:  "",
+                  code: "",
                   icon: "file",
                 };
                 if (state.selectedItem) {
@@ -139,12 +142,14 @@ export const editorSlice = createSlice({
         selectItem: (state, action) => {
             state.selectedItem = action.payload;
         },
+        getSelectItemCode: (state, action) => {
+            state.selectedItemCode = action.payload;
+        },
         updateCode: (state, action) => {
           const test = (items: TreeItemData[], itemId: string | null) => {
             return items.filter((item) => {
-              if(item.id === itemId){
-                item.code = state.editorCode;
-                state.editorCode = "";
+              if(item.id === itemId && item.type === "text"){
+                item.code = state.selectedItemCode;
               }else if(item.children){
                 item.children = test(item.children, itemId);
                 if(item.children.length === 0){
@@ -158,11 +163,11 @@ export const editorSlice = createSlice({
           state.treeItems = updateCodeItem;
         },
         getEditorCode: (state, action) => {
-            state.editorCode = action.payload;
-        }
+            state.selectedItemCode = action.payload;
+        },
     }
 })
 
 
-export const { addNewFolder, addNewFile, selectItem, deleteItem, updateCode, getEditorCode } = editorSlice.actions;
+export const { addNewFolder, addNewFile, selectItem, deleteItem, updateCode, getEditorCode, getSelectItemCode } = editorSlice.actions;
 export default editorSlice.reducer;
