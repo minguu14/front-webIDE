@@ -1,5 +1,5 @@
 import React from "react";
-import InputBox from "../component/InputBox";
+import InputBox from "../components/InputBox";
 import { Link } from "react-router-dom";
 
 export default function MyPage() {

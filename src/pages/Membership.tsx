@@ -1,7 +1,7 @@
 import React from "react";
-import InputBox from "../component/InputBox";
+import InputBox from "../components/InputBox";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import PopUp from "../component/PopUp";
+import PopUp from "../components/PopUp";
 import { signup } from "../store/reducers/usersSlice";
 import { useAppDispatch, useAppSelector } from "../store/hook";
 

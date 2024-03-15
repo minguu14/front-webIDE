@@ -8,6 +8,7 @@ import FindIDPassword from "./pages/FindIDPassword";
 import CheckPassword from "./pages/CheckPassword";
 import MyPage from "./pages/MyPage";
 import Container from "./pages/Container";
+import Editor from "./pages/Editor";
 
 function App() {
   const [foundIndex, setFoundIndex] = useState(null);
@@ -17,6 +18,7 @@ function App() {
       <Route path="*" element={<div>404 page</div>}></Route>
       <Route path="/" element={<Login />}></Route>
       <Route path="/container" element={<Container />}></Route>
+      <Route path="/editor" element={<Editor />}></Route>
       <Route path="/membership" element={<Membership />}></Route>
       <Route
         path="/find-id&password"

@@ -6,7 +6,7 @@ import { login } from "../api/axios";
 import { setUser } from "../store/reducers/userSlice";
 import { signup } from "../store/reducers/usersSlice";
 import { useAppDispatch, useAppSelector } from "../store/hook";
-import FailPopUp from "../component/FailPopUp";
+import FailPopUp from "../components/FailPopUp";
 
 export default function Login() {
   const [stillCheck, setStillCheck] = useState(false);
@@ -16,7 +16,8 @@ export default function Login() {
   const router = useNavigate();
 
   //hook
-  const users = useAppSelector((state) => state.users);
+  const users = useAppSelector((state) => state.persist.users);
+
   //Api 아이디
   // const onChangeId = (e: any) => {
   //   setUsername(e.target.value);

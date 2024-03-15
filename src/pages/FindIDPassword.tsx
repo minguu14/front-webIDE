@@ -1,10 +1,10 @@
 import React from "react";
-import InputBox from "../component/InputBox";
+import InputBox from "../components/InputBox";
 import { Link, Router, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAppSelector } from "../store/hook";
-import CheckIDPopUp from "../component/CheckIDPopUp";
-import FailIDPopUp from "../component/FaiIDPopUp";
+import CheckIDPopUp from "../components/CheckIDPopUp";
+import FailIDPopUp from "../components/FaiIDPopUp";
 import CheckPassword from "./CheckPassword";
 
 export default function FindIDPassword({ foundIndex, setFoundIndex }: any) {
@@ -22,7 +22,7 @@ export default function FindIDPassword({ foundIndex, setFoundIndex }: any) {
   const [failIDPopUp, setFilIDPopUp] = useState(false);
 
   //hook
-  const users = useAppSelector((state) => state.users);
+  const users = useAppSelector((state) => state.persist.users);
   const router = useNavigate();
 
   const FindId = () => {

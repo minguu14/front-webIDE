@@ -6,8 +6,10 @@ import {
 } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import usersSliceReducer from "../store/reducers/usersSlice";
-import userSliceReducer from "../store/reducers/userSlice";
+import usersSliceReducer from "./reducers/usersSlice";
+import userSliceReducer from "./reducers/userSlice";
+import containerReducer from "./containerSlice/containerSlice";
+import editorReducer from "./editorSlice/editorSlice";
 
 const reducer = combineReducers({
   users: usersSliceReducer,
@@ -20,8 +22,14 @@ const persistConfig = {
   whitelist: ["users"],
 };
 
+const persistedReducer = persistReducer(persistConfig, reducer);
+
 export const store = configureStore({
-  reducer: persistReducer(persistConfig, reducer),
+  reducer: {
+    container: containerReducer,
+    editor: editorReducer,
+    persist: persistedReducer,
+  },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),
 });

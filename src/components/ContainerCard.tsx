@@ -1,21 +1,22 @@
-import { Dispatch } from "react";
 import deleteIcon from "../img/containerPage/icon_delete.png";
-import { ContainerListType } from "../models/containerListsType";
+import { Link } from "react-router-dom";
+import { useAppDispatch } from "../store/hook";
+import { clickedContainer, deleteContainer } from "../store/containerSlice/containerSlice";
 
 interface ContainerCardProps {
   id: string;
   title: string;
   stack: string;
   performance: string;
-  containerLists: ContainerListType[];
-  setContainerLists: Dispatch<ContainerListType[]>
 }
 
-export default function ContainerCard({id, title, stack, performance, containerLists, setContainerLists}:ContainerCardProps){
-  const deleteContainer = (id: string) => {
-    const newData =  containerLists.filter(list => list.id !== id);
-    setContainerLists(newData);
+export default function ContainerCard({id, title, stack, performance}:ContainerCardProps){
+  const dispatch = useAppDispatch();
+
+  const deleteContainers = (id: string) => {
+    dispatch(deleteContainer(id));
   }
+
   return (
       <div className="border w-[300px] h-[233px] rounded-md bg-white">
         <div className="w-[260px] m-auto">
@@ -23,7 +24,7 @@ export default function ContainerCard({id, title, stack, performance, containerL
             <div className="flex">
               <div>{title}</div>
             </div>
-            <button onClick={() => deleteContainer(id)}>
+            <button onClick={() => deleteContainers(id)}>
               <img src={deleteIcon} alt="delete" />
             </button>
           </div>
@@ -34,8 +35,12 @@ export default function ContainerCard({id, title, stack, performance, containerL
           </div>
 
           <div className="mt-20 text-xs text-gray-300">방금 전에 수정됨</div>
-
-          <button className="border rounded-md w-full mt-6 p-1 bg-blue-950 text-white">실행</button>
+          <Link to={"/editor"}>
+          <button 
+          className="border rounded-md w-full mt-6 p-1 bg-blue-950 text-white"
+          onClick={() => dispatch(clickedContainer({id, title, stack, performance}))}
+          >실행</button>
+          </Link>
         </div>
       </div>
   );

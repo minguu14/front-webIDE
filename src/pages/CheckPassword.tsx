@@ -1,6 +1,6 @@
 import React, { SetStateAction } from "react";
 import { Link } from "react-router-dom";
-import InputBox from "../component/InputBox";
+import InputBox from "../components/InputBox";
 import { useState } from "react";
 import { useAppDispatch } from "../store/hook";
 import { exchangePassword } from "../store/reducers/usersSlice";
