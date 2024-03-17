@@ -1,21 +1,37 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { TreeItemData } from "../../models/treeItemType";
 import { v4 } from "uuid";
+import { checkCode } from "../../api/consoleApi";
 
-
+export const fetchCode:any = createAsyncThunk(
+  "editor/fetchCode",
+  async ({stack, sourceCode}: any, thunkApi) => {
+    try{
+      const { run: result } = await checkCode(stack, sourceCode);
+      result.stderr ? thunkApi.dispatch(isOutputError(true)) : thunkApi.dispatch(isOutputError(false))
+      return result.output.split("\n");
+    } catch(err) {
+      return thunkApi.rejectWithValue(err);
+    }
+  }
+)
 
 type initialData = {
     treeItems: TreeItemData[];
     selectedItem: string | null;
     selectedItemCode: string | undefined;
-    editorCode?: string | undefined;
+    outPut: string[];
+    isLoading: boolean;
+    isError: boolean;
   }
 
 const initialState: initialData = {
     treeItems: [],
     selectedItem: "",
     selectedItemCode: "",
-    editorCode: "",
+    outPut: [""],
+    isLoading: false,
+    isError: false,
 }
 
 export const editorSlice = createSlice({
@@ -139,10 +155,10 @@ export const editorSlice = createSlice({
               const updatedTreeItems = deleteItemFromTree(state.treeItems, action.payload);
               state.treeItems = updatedTreeItems;
         },
-        selectItem: (state, action) => {
+        selectItemId: (state, action) => {
             state.selectedItem = action.payload;
         },
-        getSelectItemCode: (state, action) => {
+        selectItemCode: (state, action) => {
             state.selectedItemCode = action.payload;
         },
         updateCode: (state, action) => {
@@ -165,9 +181,28 @@ export const editorSlice = createSlice({
         getEditorCode: (state, action) => {
             state.selectedItemCode = action.payload;
         },
+        getOutput: (state, action) => {
+          state.outPut = action.payload;
+        },
+        isOutputError: (state, action) => {
+          state.isError = action.payload;
+        }
+    },
+    extraReducers: (builder) => {
+      builder
+      .addCase(fetchCode.pending, (state) => {
+        state.isLoading = true;   
+      })
+      .addCase(fetchCode.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.outPut = action.payload;
+      })
+      .addCase(fetchCode.rejected, (state) => {
+        state.isLoading = false;
+      })
     }
 })
 
 
-export const { addNewFolder, addNewFile, selectItem, deleteItem, updateCode, getEditorCode, getSelectItemCode } = editorSlice.actions;
+export const { addNewFolder, addNewFile, selectItemId,getEditorCode, deleteItem, updateCode, selectItemCode, isOutputError } = editorSlice.actions;
 export default editorSlice.reducer;

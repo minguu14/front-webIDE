@@ -2,7 +2,6 @@ import Monaco from "@monaco-editor/react";
 import { useAppSelector } from "../store/hook";
 import { useEffect, useRef, useState } from "react";
 import { CODE_SNIPPETS } from "../option";
-import { checkCode } from "../api/consoleApi";
 import "../custom-scrollbar.css";
 import { TreeView } from "@mui/x-tree-view";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
@@ -16,10 +15,11 @@ import {
   addNewFile,
   addNewFolder,
   deleteItem,
-  selectItem,
   updateCode,
+  fetchCode,
+  selectItemId,
+  selectItemCode,
   getEditorCode,
-  getSelectItemCode,
 } from "../store/editorSlice/editorSlice";
 
 
@@ -27,15 +27,14 @@ export default function Editor() {
   const { title, stack, performance } = useAppSelector(
     (state) => state.container.clickedContainer
   );
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [outPut, setOutput] = useState([]);
   const editorRef = useRef<any>();
-
   const dispatch = useDispatch();
   const treeItems = useAppSelector((state) => state.editor.treeItems);
   const selectedItem = useAppSelector((state) => state.editor.selectedItem);
   const ItemCode = useAppSelector((state) => state.editor.selectedItemCode);
+  const outPut = useAppSelector((state) => state.editor.outPut);
+  const isLoading = useAppSelector((state) => state.editor.isLoading);
+  const isError = useAppSelector((state) => state.editor.isError);
  
   const onMount = (editor: any) => {
     editorRef.current = editor;
@@ -45,27 +44,20 @@ export default function Editor() {
   const runCode = async () => {
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
-    try {
-      setIsLoading(true);
-      const { run: result } = await checkCode(stack, sourceCode);
-      setOutput(result.output.split("\n"));
-      result.stderr ? setIsError(true) : setIsError(false);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
+    dispatch(fetchCode({stack, sourceCode}));
   };
 
+  // 선택한 아이템의 아이디와 코드.
   const handleItemSelect = (id: string, code: string | undefined) => {
-    dispatch(selectItem(id));
-    dispatch(getSelectItemCode(code));
+    dispatch(selectItemId(id));
+    dispatch(selectItemCode(code));
   };
 
   const savedCode = () => { 
     dispatch(updateCode(selectedItem));
   };
 
+  // 버튼 액션.
   const handleAction = (action: "folder" | "file" | "delete") => {
     const input = prompt(action === "folder" ? "폴더명을 입력해주세요." : "파일명을 입력해주세요.");
     if (input) {
@@ -85,15 +77,12 @@ export default function Editor() {
     }
   };
 
-  const handleEditorClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-  };
-
+  // 폴더 및 파일 외 다른 부분 클릭시 디렉토리 초기화
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.MuiTreeView-root')) {
-        dispatch(selectItem(null));
+        dispatch(selectItemId(null));
       }
     };
 
@@ -103,6 +92,11 @@ export default function Editor() {
       document.removeEventListener('click', handleOutsideClick);
     };
   }, []);
+
+  // 코드 편집기 부분 제외.
+  const handleEditorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+  };
 
   return (
     <div className="text-white w-screen h-screen">
