@@ -5,24 +5,29 @@ import ADHD from "../img/logo/ADHD Aspire, Dream, Honor, Discover.png";
 import InfoModal from "../components/Modal/InfoModal";
 import { useState } from "react";
 import CreateModal from "../components/Modal/CreateModal";
-import { useAppSelector } from "../store/hook";
+import { useAppDispatch, useAppSelector } from "../store/hook";
+import EditModal from "../components/Modal/EditModal";
+import { OpenCreateModal, OpenInfoModal } from "../store/modalSlice/modalSlice";
 
 
 export default function ContainerPage(){
-    const [isInfoModal, setIsInfoModal] = useState(false);
-    const [isCreateModal, setIsCreateModal] = useState(false);
+    const { createModal, editModal, infoModal } = useAppSelector((state) => state.modal);
     const containerLists = useAppSelector((state) => state.container.containerLists);
+    const dispatch = useAppDispatch();
+    
     const openInfoModal = () => {
-        setIsInfoModal(true);
+        dispatch(OpenInfoModal(true));
     }
 
-    const openCreateModal = () => {
-        setIsCreateModal(true);
+    const openCreate = () => {
+        dispatch(OpenCreateModal(true));
     }
+
   return (
     <div className="w-screen h-scree">
-        {isCreateModal && <CreateModal 
-        setIsCreateModal={setIsCreateModal}
+        {createModal && <CreateModal 
+        />}
+        {editModal && <EditModal
         />}
       <main className="w-full flex-1 bg-main-bg">
         <div className="p-10 h-screen">
@@ -43,7 +48,7 @@ export default function ContainerPage(){
                 />
                 <div className="relative">
                 <p>test</p>
-                {isInfoModal && <InfoModal setIsInfoModal={setIsInfoModal}/>}
+                {infoModal && <InfoModal/>}
                 </div>
               </div>
             </div>
@@ -51,7 +56,7 @@ export default function ContainerPage(){
 
           <section>
             <div className="border-gray-600 w-full rounded-md p-5 mt-5 mb-8 bg-gray-200">
-              <button className="rounded w-36 p-2 bg-blue-950 flex items-center" onClick={openCreateModal}>
+              <button className="rounded w-36 p-2 bg-blue-950 flex items-center" onClick={openCreate}>
                 <img src={addIcon} alt="add"/>
                 <p className="text-white">새 컨테이너</p>
               </button>

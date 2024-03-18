@@ -1,19 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {ContainerListType} from "../../models/containerListsType";
 
-type initialData = {
+type ContainerState = {
     containerLists: ContainerListType[];
     clickedContainer: ContainerListType;
+    editId: string;
 }
 
-const initialState: initialData = {
+const initialState: ContainerState = {
     containerLists: [],
     clickedContainer: {
         id: "",
         title: "",
         stack: "",
         performance: "",
-    }
+    },
+    editId: "",
 }
 
 export const containerSlice = createSlice({
@@ -22,6 +24,20 @@ export const containerSlice = createSlice({
     reducers: {
         createContainer: (state, action) => {
             state.containerLists = [...state.containerLists, action.payload]
+        },
+        editContainer: (state, action) => {
+            const {editId, stack, containerTitle, performance } = action.payload;
+            state.containerLists.map((list) => {
+                if(list.id === editId) {
+                    list.stack = stack;
+                    list.title = containerTitle;
+                    list.performance = performance;
+                }
+                return list;
+            })
+        },
+        getEditId: (state, action) => {
+            state.editId =  action.payload;
         },
         deleteContainer: (state, action) => {
             const deletedData = state.containerLists.filter((list) => list.id !== action.payload);
@@ -33,5 +49,5 @@ export const containerSlice = createSlice({
     }
 })
 
-export const { createContainer, deleteContainer, clickedContainer } = containerSlice.actions;
+export const { createContainer, deleteContainer, clickedContainer, editContainer, getEditId } = containerSlice.actions;
 export default containerSlice.reducer;

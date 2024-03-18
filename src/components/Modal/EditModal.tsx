@@ -1,31 +1,31 @@
 import { useState } from "react";
 import cancelIcon from "../../img/containerPage/icon_cancel.png";
-import { useAppDispatch } from "../../store/hook";
-import { createContainer } from "../../store/containerSlice/containerSlice";
-import { v4 } from 'uuid';
-import { OpenCreateModal } from "../../store/modalSlice/modalSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { editContainer } from "../../store/containerSlice/containerSlice";
+import { OpenEditModal } from "../../store/modalSlice/modalSlice";
 
-export default function CreateModal() {
+export default function EditModal() {
     const [stack, setStack] = useState("javascript");
     const [containerTitle, setContainerTitle] = useState("");
     const [performance, setPerformance] = useState("@ 0.5vCPU @ 1GB");
     const [titleCheck, setTitleCheck] = useState(false);
+    const editId =  useAppSelector((state) => state.container.editId);
     const dispatch = useAppDispatch();
 
     const closeCreateModal = () => {
-        dispatch(OpenCreateModal(false));
+        dispatch(OpenEditModal(false));
     }
 
-    const createContainers = () => {
+    const editContainers = () => {
         if(!titleCheck)
         {
-        const newData = {
-            id: v4(),
-            title: containerTitle,
+        const editData = {
+            editId,
             stack,
-            performance,
+            containerTitle,
+            performance
         }
-        dispatch(createContainer(newData));
+        dispatch(editContainer(editData));
         closeCreateModal();
         }
     }
@@ -33,7 +33,7 @@ export default function CreateModal() {
     <div className="absolute inset-0 z-20 w-full bg-black/60 flex justify-center items-center">
         <div className="border-2 bg-white w-[500px] h-[600px]">
             <div className="flex justify-between p-5">
-                <div>컨테이너 생성하기</div>
+                <div>컨테이너 수정하기</div>
                 <button onClick={closeCreateModal}>
                     <img src={cancelIcon} alt="cancel" className="w-4"/>
                 </button>
@@ -90,9 +90,9 @@ export default function CreateModal() {
                 </div>
                 <button 
                 className="border rounded-md w-full mt-[100px] p-4 bg-blue-950 text-white"
-                onClick={createContainers}
+                onClick={editContainers}
                 >
-                    생성하기
+                    수정하기
                 </button>
                 </div>
             </div>

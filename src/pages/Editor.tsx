@@ -24,17 +24,11 @@ import {
 
 
 export default function Editor() {
-  const { title, stack, performance } = useAppSelector(
-    (state) => state.container.clickedContainer
-  );
+  const { title, stack, performance } = useAppSelector((state) => state.container.clickedContainer);
+  const { treeItems, selectedItem, selectedItemCode, outPut, isLoading, isError} = useAppSelector((state) => state.editor);
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
-  const treeItems = useAppSelector((state) => state.editor.treeItems);
-  const selectedItem = useAppSelector((state) => state.editor.selectedItem);
-  const ItemCode = useAppSelector((state) => state.editor.selectedItemCode);
-  const outPut = useAppSelector((state) => state.editor.outPut);
-  const isLoading = useAppSelector((state) => state.editor.isLoading);
-  const isError = useAppSelector((state) => state.editor.isError);
+  
  
   const onMount = (editor: any) => {
     editorRef.current = editor;
@@ -46,6 +40,7 @@ export default function Editor() {
     if (!sourceCode) return;
     dispatch(fetchCode({stack, sourceCode}));
   };
+
 
   // 선택한 아이템의 아이디와 코드.
   const handleItemSelect = (id: string, code: string | undefined) => {
@@ -59,6 +54,10 @@ export default function Editor() {
 
   // 버튼 액션.
   const handleAction = (action: "folder" | "file" | "delete") => {
+    if(action === "delete") {
+      dispatch(deleteItem(selectedItem));
+      return;
+    } 
     const input = prompt(action === "folder" ? "폴더명을 입력해주세요." : "파일명을 입력해주세요.");
     if (input) {
       switch (action) {
@@ -67,9 +66,6 @@ export default function Editor() {
           break;
         case "file":
           dispatch(addNewFile(input));
-          break;
-        case "delete":
-            dispatch(deleteItem(selectedItem));
           break;
         default:
           break;
@@ -153,9 +149,7 @@ export default function Editor() {
             <div>
               <TreeView
                 aria-label="file system navigator"
-                defaultCollapseIcon={<FaRegFolderOpen />}
-                defaultParentIcon={<FaRegFolder />}
-                defaultExpandIcon={<FaRegFolder />}
+                defaultEndIcon={<FaRegFolder />}
               >
                 {renderTreeItems(treeItems, handleItemSelect)}
               </TreeView>
@@ -170,8 +164,8 @@ export default function Editor() {
               theme="vs-dark"
               language={stack}
               // defaultValue={CODE_SNIPPETS[stack]}
-              value={ItemCode}
-              onChange={(ItemCode) => dispatch(getEditorCode(ItemCode))}
+              value={selectedItemCode}
+              onChange={(selectedItemCode) => dispatch(getEditorCode(selectedItemCode))}
               onMount={onMount}
             />
           </div>
@@ -205,7 +199,9 @@ const renderTreeItems = (items: TreeItemData[], handleItemSelect: (id: string, c
       key={item.id}
       nodeId={item.id}
       label={item.label}
-      icon={item.icon && <FaRegFile/>}
+      icon={item.type === "text" && <FaRegFile/>}
+      collapseIcon={<FaRegFolderOpen />}
+      expandIcon={<FaRegFolder />}
       onClick={() => {
         handleItemSelect(item.id, item.code);
       }}
