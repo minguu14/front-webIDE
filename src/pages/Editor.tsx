@@ -2,7 +2,6 @@ import Monaco from "@monaco-editor/react";
 import { useAppSelector } from "../store/hook";
 import { useEffect, useRef, useState } from "react";
 import { CODE_SNIPPETS } from "../option";
-import { checkCode } from "../api/consoleApi";
 import "../custom-scrollbar.css";
 import { TreeView } from "@mui/x-tree-view";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
@@ -16,26 +15,20 @@ import {
   addNewFile,
   addNewFolder,
   deleteItem,
-  selectItem,
   updateCode,
+  fetchCode,
+  selectItemId,
+  selectItemCode,
   getEditorCode,
 } from "../store/editorSlice/editorSlice";
 
 
 export default function Editor() {
-  const { title, stack, performance } = useAppSelector(
-    (state) => state.container.clickedContainer
-  );
-  const [value, setValue] = useState<string | undefined>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [outPut, setOutput] = useState([]);
+  const { title, stack, performance } = useAppSelector((state) => state.container.clickedContainer);
+  const { treeItems, selectedItem, selectedItemCode, outPut, isLoading, isError} = useAppSelector((state) => state.editor);
   const editorRef = useRef<any>();
-
   const dispatch = useDispatch();
-  const treeItems = useAppSelector((state) => state.editor.treeItems);
-  const selectedItem = useAppSelector((state) => state.editor.selectedItem);
-  const editorCode = useAppSelector((state) => state.editor.editorCode);
+  
  
   const onMount = (editor: any) => {
     editorRef.current = editor;
@@ -45,44 +38,47 @@ export default function Editor() {
   const runCode = async () => {
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
-    try {
-      setIsLoading(true);
-      const { run: result } = await checkCode(stack, sourceCode);
-      setOutput(result.output.split("\n"));
-      result.stderr ? setIsError(true) : setIsError(false);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
+    dispatch(fetchCode({stack, sourceCode}));
+  };
+
+
+  // 선택한 아이템의 아이디와 코드.
+  const handleItemSelect = (id: string, code: string | undefined) => {
+    dispatch(selectItemId(id));
+    dispatch(selectItemCode(code));
   };
 
   const savedCode = () => { 
     dispatch(updateCode(selectedItem));
   };
 
-  const handleFolderSelect = (id: string, code: string | undefined) => {
-    dispatch(selectItem(id));
-    setValue(code);
+  // 버튼 액션.
+  const handleAction = (action: "folder" | "file" | "delete") => {
+    if(action === "delete") {
+      dispatch(deleteItem(selectedItem));
+      return;
+    } 
+    const input = prompt(action === "folder" ? "폴더명을 입력해주세요." : "파일명을 입력해주세요.");
+    if (input) {
+      switch (action) {
+        case "folder":
+          dispatch(addNewFolder(input));
+          break;
+        case "file":
+          dispatch(addNewFile(input));
+          break;
+        default:
+          break;
+      }
+    }
   };
 
-  const handleAddFolder = () => {
-    const input = prompt("폴더명을 입력해주세요.");
-    dispatch(addNewFolder(input));
-  };
-  const handleAddFile = () => {
-    const input = prompt("파일명을 입력해주세요.");
-    dispatch(addNewFile(input));
-  };
-  const handleDelete = () => {
-    dispatch(deleteItem(selectedItem));
-  };
-
+  // 폴더 및 파일 외 다른 부분 클릭시 디렉토리 초기화
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.MuiTreeView-root')) {
-        dispatch(selectItem(null));
+        dispatch(selectItemId(null));
       }
     };
 
@@ -92,6 +88,11 @@ export default function Editor() {
       document.removeEventListener('click', handleOutsideClick);
     };
   }, []);
+
+  // 코드 편집기 부분 제외.
+  const handleEditorClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+  };
 
   return (
     <div className="text-white w-screen h-screen">
@@ -133,13 +134,13 @@ export default function Editor() {
               {title}
             </div>
             <div className="mr-2">
-              <button className="mr-1 text-[20px]" onClick={handleAddFolder}>
+              <button className="mr-1 text-[20px]" onClick={() => handleAction("folder")}>
                 <RiFolderAddLine />
               </button>
-              <button className="mr-1 text-[20px]" onClick={handleAddFile}>
+              <button className="mr-1 text-[20px]" onClick={() => handleAction("file")}>
                 <AiOutlineFileAdd />
               </button>
-              <button className="mr-1 text-[20px]" onClick={handleDelete}>
+              <button className="mr-1 text-[20px]" onClick={() => handleAction("delete")}>
                 <RiDeleteBinLine />
               </button>
             </div>
@@ -148,25 +149,23 @@ export default function Editor() {
             <div>
               <TreeView
                 aria-label="file system navigator"
-                defaultCollapseIcon={<FaRegFolderOpen />}
-                defaultParentIcon={<FaRegFolder />}
-                defaultExpandIcon={<FaRegFolder />}
+                defaultEndIcon={<FaRegFolder />}
               >
-                {renderTreeItems(treeItems, handleFolderSelect)}
+                {renderTreeItems(treeItems, handleItemSelect)}
               </TreeView>
             </div>
           </div>
         </nav>
 
         {/* 편집기 */}
-        <div className="w-[85%]">
+        <div className="w-[85%]" onClick={handleEditorClick}>
           <div className="h-[70%]">
             <Monaco
               theme="vs-dark"
               language={stack}
               // defaultValue={CODE_SNIPPETS[stack]}
-              value={value}
-              onChange={(value) => dispatch(getEditorCode(value))}
+              value={selectedItemCode}
+              onChange={(selectedItemCode) => dispatch(getEditorCode(selectedItemCode))}
               onMount={onMount}
             />
           </div>
@@ -193,20 +192,21 @@ export default function Editor() {
   );
 }
 
-const renderTreeItems = (items: TreeItemData[], handleFolderSelect: (id: string, code: string | undefined) => void
+const renderTreeItems = (items: TreeItemData[], handleItemSelect: (id: string, code: string | undefined) => void
 ) => {
   return items.map((item) => (
     <TreeItem
       key={item.id}
       nodeId={item.id}
       label={item.label}
-      icon={item.icon && <FaRegFile/>}
-      defaultValue={item.code}
+      icon={item.type === "text" && <FaRegFile/>}
+      collapseIcon={<FaRegFolderOpen />}
+      expandIcon={<FaRegFolder />}
       onClick={() => {
-        handleFolderSelect(item.id, item.code);
+        handleItemSelect(item.id, item.code);
       }}
     >
-      {item.children && renderTreeItems(item.children, handleFolderSelect)}
+      {item.children && renderTreeItems(item.children, handleItemSelect)}
     </TreeItem>
   ));
 };

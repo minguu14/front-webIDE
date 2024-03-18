@@ -2,14 +2,13 @@ import settingIcon from "../../img/containerPage/icon_settings.png";
 import logoutIcon from "../../img/containerPage/icon_logout.png";
 import cancelIcon from "../../img/containerPage/icon_cancel.png";
 import { Link } from "react-router-dom";
+import { useAppDispatch } from "../../store/hook";
+import { OpenInfoModal } from "../../store/modalSlice/modalSlice";
 
-interface InfoModalProps {
-    setIsInfoModal: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-export default function InfoModal({setIsInfoModal}:InfoModalProps) {
+export default function InfoModal() {
+    const dispatch = useAppDispatch();
     const closeInfoModal = () => {
-        setIsInfoModal(false);
+        dispatch(OpenInfoModal(false));
     }
   return (
     <div className="border-2 w-60 h-60 rounded absolute right-0 bg-white">

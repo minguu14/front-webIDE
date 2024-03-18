@@ -10,6 +10,7 @@ import usersSliceReducer from "./reducers/usersSlice";
 import userSliceReducer from "./reducers/userSlice";
 import containerReducer from "./containerSlice/containerSlice";
 import editorReducer from "./editorSlice/editorSlice";
+import modalReducer from "./modalSlice/modalSlice";
 
 const reducer = combineReducers({
   users: usersSliceReducer,
@@ -26,6 +27,7 @@ const persistedReducer = persistReducer(persistConfig, reducer);
 
 export const store = configureStore({
   reducer: {
+    modal: modalReducer,
     container: containerReducer,
     editor: editorReducer,
     persist: persistedReducer,
