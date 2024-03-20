@@ -26,6 +26,10 @@ import Chat from "../components/Modal/Chat";
 
 export default function Editor() {
   const [showChat, setShowChat] = useState(false);
+  const [isConsole, setIsConsole] = useState(true);
+  const [isTerminal, setIsTerminal] = useState(false);
+  const [input, setInput] = useState<any>('');
+  const [output, setOutput] = useState<any>([]);
   const { title, stack, performance } = useAppSelector(
     (state) => state.container.clickedContainer
   );
@@ -40,6 +44,18 @@ export default function Editor() {
 
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
+
+
+  const handleInputChange = (event:any) => {
+    setInput(event.target.value);
+  };
+
+  const handleInputSubmit = (event:any) => {
+    event.preventDefault();
+    setOutput([...output, { type: 'input', value: input }]);
+    // 결과
+    setInput('');
+  };
 
   const onMount = (editor: any) => {
     editorRef.current = editor;
@@ -84,6 +100,26 @@ export default function Editor() {
       }
     }
   };
+
+  const findText = ():boolean => {
+    const childrenFindText = (child: any) => {
+      return child.some((ch:any) => {
+        if(ch.type === "text"){
+          return true;
+        }else if(ch.children){
+          childrenFindText(ch.children);
+        }
+      })
+    }
+   return treeItems.some((item) => {
+      if(item.type === "text"){
+        return true;
+      } else if(item.children){
+        return item.children.some((chy) => chy.type === "text");
+        // childrenFindText(item.children);
+      }
+    })
+  }
 
   // 폴더 및 파일 외 다른 부분 클릭시 디렉토리 초기화
   useEffect(() => {
@@ -194,6 +230,7 @@ export default function Editor() {
         {/* 편집기 */}
         <div className="w-[85%]" onClick={handleEditorClick}>
           <div className="h-[70%]">
+            { findText() ?
             <Monaco
               theme="vs-dark"
               language={stack}
@@ -204,15 +241,21 @@ export default function Editor() {
               }
               onMount={onMount}
             />
+            : <p>파일을 추가해주세요.</p>
+            }
           </div>
 
           {/* 콘솔 */}
           <div className="h-[30%] overflow-y-auto">
             <header className="w-full bg-black flex items-center fixed">
-              <div className="bg-black w-[100px] p-[5px] border-t-2 border-blue-500">
+              <button className={`bg-black w-[100px] p-[5px] border-t-2 ${isConsole && "border-blue-500"} `} onClick={() => {setIsConsole(true); setIsTerminal(false)}}>
                 Console
-              </div>
+              </button>
+              <button className={`bg-black w-[100px] p-[5px] border-t-2 ${isTerminal && "border-blue-500"}`} onClick={() => {setIsTerminal(true); setIsConsole(false);}}>
+                Terminal
+              </button>
             </header>
+            {isConsole ?
             <div className="p-3 mt-8">
               {outPut &&
                 outPut.map((line: string, i: number) => (
@@ -221,6 +264,29 @@ export default function Editor() {
                   </p>
                 ))}
             </div>
+            :
+            <div className="p-3 mt-8">
+              <div>
+        {output.map((item:any, index:any) => (
+          <div key={index}>
+            {item.type === 'input' ? (
+              <span>{'> ' + item.value}</span>
+            ) : (
+              <span>{item.value}</span>
+            )}
+          </div>
+        ))}
+      </div>
+        <form onSubmit={handleInputSubmit}>
+          <span>&gt;</span>
+          <input
+            type="text"
+            value={input}
+            onChange={handleInputChange}
+            className="text-white bg-black/0 focus:outline-none ml-1 w-[1200px]"
+          />
+        </form>
+          </div>}
           </div>
         </div>
       </div>
