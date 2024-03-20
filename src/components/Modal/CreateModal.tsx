@@ -2,33 +2,30 @@ import { useState } from "react";
 import cancelIcon from "../../img/containerPage/icon_cancel.png";
 import { useAppDispatch } from "../../store/hook";
 import { createContainer } from "../../store/containerSlice/containerSlice";
-import { v4 } from 'uuid';
+import { v4 } from "uuid";
 import { OpenCreateModal } from "../../store/modalSlice/modalSlice";
 
 export default function CreateModal() {
-    const [stack, setStack] = useState("javascript");
-    const [containerTitle, setContainerTitle] = useState("");
-    const [performance, setPerformance] = useState("@ 0.5vCPU @ 1GB");
-    const [titleCheck, setTitleCheck] = useState(false);
-    const dispatch = useAppDispatch();
+  const [stack, setStack] = useState("javascript");
+  const [containerTitle, setContainerTitle] = useState("");
+  const [performance, setPerformance] = useState("@ 0.5vCPU @ 1GB");
+  const [titleCheck, setTitleCheck] = useState(false);
+  const dispatch = useAppDispatch();
 
-    const closeCreateModal = () => {
-        dispatch(OpenCreateModal(false));
-    }
+  const closeCreateModal = () => {
+    dispatch(OpenCreateModal(false));
+  };
 
-    const createContainers = () => {
-        if(!titleCheck)
-        {
-        const newData = {
-            id: v4(),
-            title: containerTitle,
-            stack,
-            performance,
-        }
-        dispatch(createContainer(newData));
-        closeCreateModal();
-        }
-
+  const createContainers = () => {
+    if (!titleCheck) {
+      const newData = {
+        id: v4(),
+        title: containerTitle,
+        stack,
+        performance,
+      };
+      dispatch(createContainer(newData));
+      closeCreateModal();
     }
   };
   return (

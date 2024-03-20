@@ -25,13 +25,22 @@ import chatIcon from "../img/chatIcon.png";
 import Chat from "../components/Modal/Chat";
 
 export default function Editor() {
-  const { title, stack, performance } = useAppSelector((state) => state.container.clickedContainer);
-  const { treeItems, selectedItem, selectedItemCode, outPut, isLoading, isError} = useAppSelector((state) => state.editor);
+  const [showChat, setShowChat] = useState(false);
+  const { title, stack, performance } = useAppSelector(
+    (state) => state.container.clickedContainer
+  );
+  const {
+    treeItems,
+    selectedItem,
+    selectedItemCode,
+    outPut,
+    isLoading,
+    isError,
+  } = useAppSelector((state) => state.editor);
 
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
-  
- 
+
   const onMount = (editor: any) => {
     editorRef.current = editor;
     editor.focus();
@@ -40,9 +49,8 @@ export default function Editor() {
   const runCode = async () => {
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
-    dispatch(fetchCode({stack, sourceCode}));
+    dispatch(fetchCode({ stack, sourceCode }));
   };
-
 
   // 선택한 아이템의 아이디와 코드.
   const handleItemSelect = (id: string, code: string | undefined) => {
@@ -50,17 +58,19 @@ export default function Editor() {
     dispatch(selectItemCode(code));
   };
 
-  const savedCode = () => { 
+  const savedCode = () => {
     dispatch(updateCode(selectedItem));
   };
 
   // 버튼 액션.
   const handleAction = (action: "folder" | "file" | "delete") => {
-    if(action === "delete") {
+    if (action === "delete") {
       dispatch(deleteItem(selectedItem));
       return;
-    } 
-    const input = prompt(action === "folder" ? "폴더명을 입력해주세요." : "파일명을 입력해주세요.");
+    }
+    const input = prompt(
+      action === "folder" ? "폴더명을 입력해주세요." : "파일명을 입력해주세요."
+    );
     if (input) {
       switch (action) {
         case "folder":
@@ -80,9 +90,8 @@ export default function Editor() {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      if (!target.closest('.MuiTreeView-root')) {
+      if (!target.closest(".MuiTreeView-root")) {
         dispatch(selectItemId(null));
-
       }
     };
 
@@ -150,13 +159,22 @@ export default function Editor() {
           <div className="bg-blue-500 h-[4%] flex justify-between items-center">
             <div className="ml-2">{title}</div>
             <div className="mr-2">
-              <button className="mr-1 text-[20px]" onClick={() => handleAction("folder")}>
+              <button
+                className="mr-1 text-[20px]"
+                onClick={() => handleAction("folder")}
+              >
                 <RiFolderAddLine />
               </button>
-              <button className="mr-1 text-[20px]" onClick={() => handleAction("file")}>
+              <button
+                className="mr-1 text-[20px]"
+                onClick={() => handleAction("file")}
+              >
                 <AiOutlineFileAdd />
               </button>
-              <button className="mr-1 text-[20px]" onClick={() => handleAction("delete")}>
+              <button
+                className="mr-1 text-[20px]"
+                onClick={() => handleAction("delete")}
+              >
                 <RiDeleteBinLine />
               </button>
             </div>
@@ -181,7 +199,9 @@ export default function Editor() {
               language={stack}
               // defaultValue={CODE_SNIPPETS[stack]}
               value={selectedItemCode}
-              onChange={(selectedItemCode) => dispatch(getEditorCode(selectedItemCode))}
+              onChange={(selectedItemCode) =>
+                dispatch(getEditorCode(selectedItemCode))
+              }
               onMount={onMount}
             />
           </div>
@@ -208,20 +228,18 @@ export default function Editor() {
   );
 }
 
-
-const renderTreeItems = (items: TreeItemData[], handleItemSelect: (id: string, code: string | undefined) => void
-
+const renderTreeItems = (
+  items: TreeItemData[],
+  handleItemSelect: (id: string, code: string | undefined) => void
 ) => {
   return items.map((item) => (
     <TreeItem
       key={item.id}
       nodeId={item.id}
       label={item.label}
-
-      icon={item.type === "text" && <FaRegFile/>}
+      icon={item.type === "text" && <FaRegFile />}
       collapseIcon={<FaRegFolderOpen />}
       expandIcon={<FaRegFolder />}
-
       onClick={() => {
         handleItemSelect(item.id, item.code);
       }}
