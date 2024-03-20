@@ -20,7 +20,8 @@ import {
   updateCode,
   getEditorCode,
 } from "../store/editorSlice/editorSlice";
-
+import chatIcon from "../img/chatIcon.png";
+import Chat from "../components/Modal/Chat";
 
 export default function Editor() {
   const { title, stack, performance } = useAppSelector(
@@ -30,13 +31,14 @@ export default function Editor() {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [outPut, setOutput] = useState([]);
+  const [showChat, setShowChat] = useState(false);
   const editorRef = useRef<any>();
 
   const dispatch = useDispatch();
   const treeItems = useAppSelector((state) => state.editor.treeItems);
   const selectedItem = useAppSelector((state) => state.editor.selectedItem);
   const editorCode = useAppSelector((state) => state.editor.editorCode);
- 
+
   const onMount = (editor: any) => {
     editorRef.current = editor;
     editor.focus();
@@ -57,7 +59,7 @@ export default function Editor() {
     }
   };
 
-  const savedCode = () => { 
+  const savedCode = () => {
     dispatch(updateCode(selectedItem));
   };
 
@@ -81,20 +83,34 @@ export default function Editor() {
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.MuiTreeView-root')) {
+      if (!target.closest(".MuiTreeView-root")) {
         dispatch(selectItem(null));
       }
     };
 
-    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener("click", handleOutsideClick);
 
     return () => {
-      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener("click", handleOutsideClick);
     };
   }, []);
 
   return (
-    <div className="text-white w-screen h-screen">
+    <div className="text-white w-screen h-screen ">
+      {/* 챗팅 */}
+      <div>
+        {showChat && <Chat />}
+        <button
+          className="absolute bottom-2 right-2"
+          onClick={() => setShowChat(!showChat)}
+        >
+          <img
+            src={chatIcon}
+            alt="챗팅"
+            className="w-12 h-12  shadow  rounded-full hover:shadow-sky-400/70  "
+          />
+        </button>
+      </div>
       {/* 헤더 */}
       <header className="h-[5%] p-3 bg-black flex justify-between items-center">
         <div>{performance}</div>
@@ -129,9 +145,7 @@ export default function Editor() {
         {/* 트리 */}
         <nav className="w-[15%] h-full border-2 border-black">
           <div className="bg-blue-500 h-[4%] flex justify-between items-center">
-            <div className="ml-2">
-              {title}
-            </div>
+            <div className="ml-2">{title}</div>
             <div className="mr-2">
               <button className="mr-1 text-[20px]" onClick={handleAddFolder}>
                 <RiFolderAddLine />
@@ -193,14 +207,16 @@ export default function Editor() {
   );
 }
 
-const renderTreeItems = (items: TreeItemData[], handleFolderSelect: (id: string, code: string | undefined) => void
+const renderTreeItems = (
+  items: TreeItemData[],
+  handleFolderSelect: (id: string, code: string | undefined) => void
 ) => {
   return items.map((item) => (
     <TreeItem
       key={item.id}
       nodeId={item.id}
       label={item.label}
-      icon={item.icon && <FaRegFile/>}
+      icon={item.icon && <FaRegFile />}
       defaultValue={item.code}
       onClick={() => {
         handleFolderSelect(item.id, item.code);
