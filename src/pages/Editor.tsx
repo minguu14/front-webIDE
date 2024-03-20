@@ -21,11 +21,13 @@ import {
   selectItemCode,
   getEditorCode,
 } from "../store/editorSlice/editorSlice";
-
+import chatIcon from "../img/chatIcon.png";
+import Chat from "../components/Modal/Chat";
 
 export default function Editor() {
   const { title, stack, performance } = useAppSelector((state) => state.container.clickedContainer);
   const { treeItems, selectedItem, selectedItemCode, outPut, isLoading, isError} = useAppSelector((state) => state.editor);
+
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
   
@@ -77,15 +79,17 @@ export default function Editor() {
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
+
       if (!target.closest('.MuiTreeView-root')) {
         dispatch(selectItemId(null));
+
       }
     };
 
-    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener("click", handleOutsideClick);
 
     return () => {
-      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener("click", handleOutsideClick);
     };
   }, []);
 
@@ -95,7 +99,21 @@ export default function Editor() {
   };
 
   return (
-    <div className="text-white w-screen h-screen">
+    <div className="text-white w-screen h-screen ">
+      {/* 챗팅 */}
+      <div>
+        {showChat && <Chat />}
+        <button
+          className="absolute bottom-2 right-2"
+          onClick={() => setShowChat(!showChat)}
+        >
+          <img
+            src={chatIcon}
+            alt="챗팅"
+            className="w-12 h-12  shadow  rounded-full hover:shadow-sky-400/70  "
+          />
+        </button>
+      </div>
       {/* 헤더 */}
       <header className="h-[5%] p-3 bg-black flex justify-between items-center">
         <div>{performance}</div>
@@ -130,9 +148,7 @@ export default function Editor() {
         {/* 트리 */}
         <nav className="w-[15%] h-full border-2 border-black">
           <div className="bg-blue-500 h-[4%] flex justify-between items-center">
-            <div className="ml-2">
-              {title}
-            </div>
+            <div className="ml-2">{title}</div>
             <div className="mr-2">
               <button className="mr-1 text-[20px]" onClick={() => handleAction("folder")}>
                 <RiFolderAddLine />
@@ -192,16 +208,20 @@ export default function Editor() {
   );
 }
 
+
 const renderTreeItems = (items: TreeItemData[], handleItemSelect: (id: string, code: string | undefined) => void
+
 ) => {
   return items.map((item) => (
     <TreeItem
       key={item.id}
       nodeId={item.id}
       label={item.label}
+
       icon={item.type === "text" && <FaRegFile/>}
       collapseIcon={<FaRegFolderOpen />}
       expandIcon={<FaRegFolder />}
+
       onClick={() => {
         handleItemSelect(item.id, item.code);
       }}
