@@ -9,8 +9,8 @@ import CheckPassword from "./CheckPassword";
 import { getUserId, getUserPW } from "../api/axios";
 
 export default function FindIDPassword({
-  foundIndex,
-  setFoundIndex,
+  // foundIndex,
+  // setFoundIndex,
   userid,
   setUserid,
 }: any) {
@@ -21,27 +21,37 @@ export default function FindIDPassword({
   const [pwBirthDate, setPwBirthDate] = useState("");
   const [foundId, setFoundId] = useState("");
   const [foundName, setFoundName] = useState("");
+  const [failIDPopUp, setFilIDPopUp] = useState(false);
   const [foundEmail, setFoundEmail] = useState("");
   const [foundBirth, setFoundBirth] = useState("");
   const [openIDPopUp, setOpenIDPopUp] = useState(false);
-  const [failIDPopUp, setFilIDPopUp] = useState(false);
+
   const router = useNavigate();
   //redux-hook
   const users = useAppSelector((state) => state.persist.users);
 
   // 등록된 사용자 id 데이터 호출
   const getUsersIdApi = async (email: any, name: any, birth: any) => {
-    try {
-      const response = await getUserId(email, name, birth);
-      console.log(response.name); // 받아온 데이터를 출력하거나 다른 처리를 수행합니다.
+    const response = await getUserId(email, name, birth);
+    if (response == "error") {
+      setFilIDPopUp(!failIDPopUp);
+    } else {
       setFoundName(response.name);
       setFoundId(response.username);
       setOpenIDPopUp(!openIDPopUp);
-    } catch (error) {
-      setFilIDPopUp(!failIDPopUp);
-      console.error("Error fetching users:", error);
-      // 에러 처리를 수행합니다.
     }
+
+    // try {
+    //   const response = await getUserId(email, name, birth);
+    //   console.log(response.name); // 받아온 데이터를 출력하거나 다른 처리를 수행합니다.
+    //   setFoundName(response.name);
+    //   setFoundId(response.username);
+    //   setOpenIDPopUp(!openIDPopUp);
+    // } catch (error) {
+    //   setFilIDPopUp(!failIDPopUp);
+    //   console.error("Error fetching users:", error);
+    //   // 에러 처리를 수행합니다.
+    // }
   };
   // 등록된 사용자 pw 데이터 호출
   const getUsersPwApi = async (username: any, name: any, birth: any) => {
