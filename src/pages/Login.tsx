@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import googleLogo from "../../src/img/googleLogo.jpg";
 import kakao from "../img/Subtract.png";
@@ -9,62 +9,57 @@ import { useAppDispatch, useAppSelector } from "../store/hook";
 import FailPopUp from "../components/FailPopUp";
 
 export default function Login() {
-  const [stillCheck, setStillCheck] = useState(false);
+  const [stillLogin, setStillLogin] = useState<boolean>(false);
   const [failPopUp, setFailPopUp] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useNavigate();
 
+  //로그인 유지
+  useEffect(() => {
+    const accessToken = localStorage.getItem("access");
+    if (accessToken) {
+      router("/container");
+    }
+  }, []);
   //hook
   const users = useAppSelector((state) => state.persist.users);
 
-  //Api 아이디
-  // const onChangeId = (e: any) => {
-  //   setUsername(e.target.value);
-  // };
+  // Api 아이디
+  const onChangeId = (e: any) => {
+    setUsername(e.target.value);
+  };
 
-  // const onChangePw = (e: any) => {
-  //   setPassword(e.target.value);
-  // };
+  const onChangePw = (e: any) => {
+    setPassword(e.target.value);
+  };
 
-  //로그인 유지
-  // const stillButton = () => {
-  //   setStillCheck(!stillCheck);
+  const onClick = async () => {
+    const result = await login(username, password);
+    console.log(result);
+    const { accessToken, refreshToken } = result;
+    if (stillLogin) {
+      localStorage.setItem("access", accessToken);
+      localStorage.setItem("refresh", refreshToken);
+    }
+    router("/container");
+  };
+
+  // const loginButton = () => {
   //   const ids = users.map((data: any) => data.email);
   //   const pw = users.map((data: any) => data.password);
-  //   if (
-  //     stillCheck == true &&
-  //     ids.includes(userEmail) &&
-  //     pw.includes(password)
-  //   ) {
+  //   console.log(ids);
+  //   console.log(pw);
+  //   if (ids.includes(username) && pw.includes(password)) {
+  //     console.log("로그인성공");
+  //     router("/container");
   //   } else {
+  //     console.log("로그인실패");
+  //     setFailPopUp(!failPopUp);
+  //     setUsername("");
+  //     setPassword("");
   //   }
   // };
-
-  // const onClick = async () => {
-  //   const result = await login(username, password);
-  //   console.log(result);
-  //   const { accessToken, refreshToken } = result;
-  //   localStorage.setItem("access", accessToken);
-  //   localStorage.setItem("refresh", refreshToken);
-  //   router("/container");
-  // };
-
-  const loginButton = () => {
-    const ids = users.map((data: any) => data.email);
-    const pw = users.map((data: any) => data.password);
-    console.log(ids);
-    console.log(pw);
-    if (ids.includes(userEmail) && pw.includes(password)) {
-      console.log("로그인성공");
-      router("/container");
-    } else {
-      console.log("로그인실패");
-      setFailPopUp(!failPopUp);
-      setUserEmail("");
-      setPassword("");
-    }
-  };
 
   return (
     <div>
@@ -86,11 +81,11 @@ export default function Login() {
           <div className="flex flex-col mb-4">
             <input
               type="text"
-              placeholder="이메일"
+              placeholder="ID"
               className="w-96 h-11 border-2 rounded p-7 mb-4"
-              value={userEmail}
+              value={username}
               onChange={(e) => {
-                setUserEmail(e.target.value);
+                setUsername(e.target.value);
               }}
             />
             <input
@@ -105,7 +100,11 @@ export default function Login() {
           </div>
           <div className="w-full flex justify-between mb-8">
             <div>
-              <input type="checkbox" id="id" />
+              <input
+                type="checkbox"
+                id="id"
+                onClick={() => setStillLogin(!stillLogin)}
+              />
               <label htmlFor="id">로그인 유지</label>
             </div>
             <div className="flex flex-row text-gray-600">
@@ -118,7 +117,8 @@ export default function Login() {
           </div>
           <button
             className="w-96 h-11 rounded bg-blue-950 text-white mb-4"
-            onClick={loginButton}
+            // onClick={loginButton}
+            onClick={onClick}
           >
             로그인
           </button>

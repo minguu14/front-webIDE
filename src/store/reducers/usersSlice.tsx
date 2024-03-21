@@ -4,9 +4,9 @@ export interface Users {
   id: number;
   name: string;
   email: string;
-  loginId: string;
+  username: string;
   password: string;
-  birthDate: string;
+  birth: string;
 }
 
 export const usersSlice = createSlice({
@@ -19,15 +19,15 @@ export const usersSlice = createSlice({
         id: state.length,
         name: action.payload.name,
         email: action.payload.email,
-        loginId: action.payload.loginId,
+        username: action.payload.username,
         password: action.payload.password,
-        birthDate: action.payload.birthDate,
+        birth: action.payload.birth,
       });
     },
     exchangePassword(state: Users[], action) {
       console.log(action.payload);
       const targetState = state.find(
-        (user) => user.loginId === action.payload.foundIndex.loginId
+        (user) => user.username === action.payload.foundIndex.username
       );
       if (targetState) {
         targetState["password"] = action.payload.newpassword;
