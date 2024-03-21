@@ -4,7 +4,6 @@ import Login from "./pages/Login";
 import { Route, Routes } from "react-router-dom";
 import Membership from "./pages/Membership";
 import FindIDPassword from "./pages/FindIDPassword";
-
 import CheckPassword from "./pages/CheckPassword";
 import MyPage from "./pages/MyPage";
 import Container from "./pages/Container";
@@ -12,6 +11,7 @@ import Editor from "./pages/Editor";
 
 function App() {
   const [foundIndex, setFoundIndex] = useState(null);
+  const [userid, setUserid] = useState("");
 
   return (
     <Routes>
@@ -26,12 +26,14 @@ function App() {
           <FindIDPassword
             foundIndex={foundIndex}
             setFoundIndex={setFoundIndex}
+            userid={userid}
+            setUserid={setUserid}
           />
         }
       ></Route>
       <Route
-        path="find-id&password/checkpassword"
-        element={<CheckPassword foundIndex={foundIndex} />}
+        path="/find-id&password/checkpassword"
+        element={<CheckPassword userid={userid} />}
       ></Route>
       <Route path="/mypage" element={<MyPage />}></Route>
     </Routes>

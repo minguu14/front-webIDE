@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 import PopUp from "../components/PopUp";
 import { signup } from "../store/reducers/usersSlice";
 import { useAppDispatch, useAppSelector } from "../store/hook";
+import { menbershipApi } from "../api/axios";
 
 export default function Membership() {
   const dispatch = useAppDispatch();
@@ -16,27 +17,49 @@ export default function Membership() {
 
   let [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [userid, setUserid] = useState("");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  const [birth, setBirth] = useState("");
 
   const changeEvent = () => {
     setOpen(!open);
   };
+  /*redux 회원가입 */
+  // const signupApi = async () => {
+  //   dispatch(
+  //     signup({
+  //       name: name,
+  //       email: email,
+  //       username: username,
+  //       password: password,
+  //       birth: birth,
+  //     })
+  //   );
+  // };
 
+  // 회원가입 API 호출
   const signupApi = async () => {
-    dispatch(
-      signup({
-        name: name,
-        email: userEmail,
-        loginId: userid,
-        password: password,
-        birthDate: birthDate,
-      })
-    );
+    try {
+      const result = await menbershipApi(
+        name,
+        email,
+        username,
+        password,
+        birth
+      ); // membership 함수 호출
+      if ((result && result.code === 201) || 200) {
+        console.log("회원가입 성공:", result);
+        // 성공 시 필요한 작업 수행
+      } else {
+        console.log("회원가입 실패");
+        // 실패 시 필요한 작업 수행
+      }
+    } catch (error) {
+      console.error("회원가입 요청 중 오류 발생:", error);
+      // 오류 처리 필요
+    }
   };
-
   return (
     <div>
       <div
@@ -76,12 +99,12 @@ export default function Membership() {
           </div>
           <input
             type="text"
-            value={userEmail}
+            value={email}
             placeholder="이메일"
             className="w-96 h-11 border-2 rounded p-6 mb-2"
             ref={emailRef}
             onChange={(e) => {
-              setUserEmail(e.target.value);
+              setEmail(e.target.value);
             }}
           />
         </div>
@@ -91,12 +114,12 @@ export default function Membership() {
           </div>
           <input
             type="text"
-            value={userid}
+            value={username}
             placeholder="ID"
             className="w-96 h-11 border-2 rounded p-6 mb-2"
             ref={useridRef}
             onChange={(e) => {
-              setUserid(e.target.value);
+              setUsername(e.target.value);
             }}
           />
         </div>
@@ -123,12 +146,12 @@ export default function Membership() {
           </div>
           <input
             type="number"
-            value={birthDate}
+            value={birth}
             placeholder="19950205"
             className="w-96 h-11 border-2 rounded p-6 mb-2"
             ref={birthDateRef}
             onChange={(e) => {
-              setBirthDate(e.target.value);
+              setBirth(e.target.value);
             }}
           />
         </div>
