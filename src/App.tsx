@@ -24,8 +24,8 @@ function App() {
         path="/find-id&password"
         element={
           <FindIDPassword
-            foundIndex={foundIndex}
-            setFoundIndex={setFoundIndex}
+            // foundIndex={foundIndex}
+            // setFoundIndex={setFoundIndex}
             userid={userid}
             setUserid={setUserid}
           />
@@ -33,7 +33,7 @@ function App() {
       ></Route>
       <Route
         path="/find-id&password/checkpassword"
-        element={<CheckPassword userid={userid} />}
+        element={<CheckPassword userid={userid} setUserid={setUserid} />}
       ></Route>
       <Route path="/mypage" element={<MyPage />}></Route>
     </Routes>

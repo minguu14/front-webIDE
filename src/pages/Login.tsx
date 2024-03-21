@@ -25,24 +25,20 @@ export default function Login() {
   //hook
   const users = useAppSelector((state) => state.persist.users);
 
-  // Api 아이디
-  const onChangeId = (e: any) => {
-    setUsername(e.target.value);
-  };
-
-  const onChangePw = (e: any) => {
-    setPassword(e.target.value);
-  };
-
   const onClick = async () => {
     const result = await login(username, password);
-    console.log(result);
-    const { accessToken, refreshToken } = result;
-    if (stillLogin) {
-      localStorage.setItem("access", accessToken);
-      localStorage.setItem("refresh", refreshToken);
+    if (result === "failed to login") {
+      alert("아이디와 비밀 번호가 올바르지 않습니다.");
+    } else {
+      const { accessToken, refreshToken } = result;
+
+      if (stillLogin) {
+        localStorage.setItem("access", accessToken);
+        localStorage.setItem("refresh", refreshToken);
+      }
+      router("/container");
     }
-    router("/container");
+    console.log(result);
   };
 
   // const loginButton = () => {

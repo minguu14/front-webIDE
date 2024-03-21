@@ -5,12 +5,14 @@ import { useState } from "react";
 import { useAppDispatch } from "../store/hook";
 import { exchangePassword } from "../store/reducers/usersSlice";
 import { changeUserPassword } from "../api/axios";
+import FailIDPopUp from "../components/FailPopUp";
 // redux  내려주기
 // export default function CheckPassword({ foundIndex }: any) {
-export default function CheckPassword({ userid }: any) {
+export default function CheckPassword({ userid, setUserid }: any) {
   const dispatch = useAppDispatch();
   const [changePw, setChangePw] = useState("");
   const [checkPw, setCheckPw] = useState("");
+  const [pwError, setPwError] = useState(false);
   const router = useNavigate();
   //redux 비밀번호 변경
   // const changePassword = () => {
@@ -27,14 +29,13 @@ export default function CheckPassword({ userid }: any) {
   // 비빌번호 데이터 변경
 
   const changePasswordApi = async (username: any, newPassword: any) => {
-    try {
+    if (changePw === checkPw) {
       const response = await changeUserPassword(username, newPassword);
       console.log(response);
-      router("/find-id&password");
-    } catch (error) {
-      console.log("변경 실패");
-      console.log(userid);
-      console.log(changePw);
+      router("/");
+      setUserid("");
+    } else {
+      setPwError(!pwError);
     }
   };
 
@@ -75,6 +76,9 @@ export default function CheckPassword({ userid }: any) {
             setCheckPw(e.target.value);
           }}
         />
+        {pwError && (
+          <p className="text-red-500 text-sm">비밀번호가 일치하지 않습니다.</p>
+        )}
       </div>
 
       <button
