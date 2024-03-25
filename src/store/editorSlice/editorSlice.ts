@@ -39,12 +39,13 @@ export const editorSlice = createSlice({
     initialState,
     reducers: {
         addNewFolder: (state, action) => {
+          // 선택한 폴더에 생성.
            const addFolderToParent = (parentId: string, newFolder: TreeItemData) => {
                 const updatedTreeItems = state.treeItems.map(item => {
                     if (item.id === parentId && !item.label?.includes(".")) {
                       return {
                         ...item,
-                        children: item.children ? [...item.children, newFolder] : [newFolder]
+                        children: item.children ? [...item.children, newFolder = {...newFolder, treeDirectory: item.treeDirectory && [...item.treeDirectory, newFolder.label]}] : [newFolder],
                       };
                     } else if (item.children && !item.label?.includes(".")) {
                       return {
@@ -56,12 +57,14 @@ export const editorSlice = createSlice({
                   });
                   state.treeItems = updatedTreeItems;
             }
+            // 선택한 폴더의 child에 생성.
            const addFolderToParentInChild = (children: TreeItemData[], parentId: string, newFolder: TreeItemData): TreeItemData[] => {
                 return children.map(child => {
                     if (child.id === parentId && !child.label?.includes(".")) {
                         return {
                           ...child,
-                          children: child.children ? [...child.children, newFolder] : [newFolder]
+                          children: child.children ? [...child.children, newFolder= {...newFolder, treeDirectory: child.treeDirectory && [...child.treeDirectory, newFolder.label]}] : [newFolder],
+                          
                         };
                       } else if (child.children && !child.label?.includes(".")) {
                         return {
@@ -72,17 +75,21 @@ export const editorSlice = createSlice({
                       return child;
                 })
             }
-
-            if(action.payload?.includes(".")) return;
+            
+            const { input, title } = action.payload;
+            
+            if(input?.includes(".")) return;
             const newFolder: TreeItemData = {
                 id: v4(),
                 type: "folder",
-                label: action.payload,
+                treeDirectory: [title,input],
+                label: input,
                 icon: "",
                 children: [],
             }
+            
             if(state.selectedItem){
-                addFolderToParent(state.selectedItem, newFolder);
+                addFolderToParent(state.selectedItem, newFolder)
             }else{
               state.treeItems.push(newFolder);
             }
@@ -186,7 +193,7 @@ export const editorSlice = createSlice({
         },
         isOutputError: (state, action) => {
           state.isError = action.payload;
-        }
+        },
     },
     extraReducers: (builder) => {
       builder
