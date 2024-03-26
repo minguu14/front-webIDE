@@ -4,6 +4,7 @@ import { useAppDispatch } from "../../store/hook";
 import { createContainer } from "../../store/containerSlice/containerSlice";
 import { v4 } from "uuid";
 import { OpenCreateModal } from "../../store/modalSlice/modalSlice";
+import { createContainerTest } from "../../api/container";
 
 export default function CreateModal() {
   const [stack, setStack] = useState("javascript");
@@ -16,7 +17,9 @@ export default function CreateModal() {
     dispatch(OpenCreateModal(false));
   };
 
-  const createContainers = () => {
+  const createContainers = async () => {
+    const test = await createContainerTest("testUsername","testProject","java","1024","3072");
+    console.log(test);
     if (!titleCheck) {
       const newData = {
         id: v4(),

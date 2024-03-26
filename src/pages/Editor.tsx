@@ -5,6 +5,8 @@ import { CODE_SNIPPETS } from "../option";
 import "../custom-scrollbar.css";
 import { TreeView } from "@mui/x-tree-view";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
+import SockJS from "sockjs-client";
+import Stomp from 'stompjs';
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { RiFolderAddLine, RiDeleteBinLine } from "react-icons/ri";
 import { FaRegFile } from "react-icons/fa";
@@ -20,9 +22,11 @@ import {
   selectItemId,
   selectItemCode,
   getEditorCode,
+  selectedDirectoryTest,
 } from "../store/editorSlice/editorSlice";
 import chatIcon from "../img/chatIcon.png";
 import Chat from "../components/Modal/Chat";
+import { commandTest, getContainerDataTest, treeTest } from "../api/editor";
 
 export default function Editor() {
   const [showChat, setShowChat] = useState(false);
@@ -30,14 +34,18 @@ export default function Editor() {
   const [isTerminal, setIsTerminal] = useState(false);
   const [terminalInput, setTerminalInput] = useState<any>('');
   const [terminalOutput, setTerminalOutput] = useState<any>([]);
+  const [stompClient, setStompClient] = useState(null);
+  const [taskArn, setTaskArn] = useState("");
+  const [logData, setLogData] = useState<any>([]);
   const { title, stack, performance } = useAppSelector(
     (state) => state.container.clickedContainer
   );
-  const [currentDirectory, setCurrentDirectory] = useState([title]);
+  const [currentDirectory, setCurrentDirectory] = useState([""]);
   const {
     treeItems,
     selectedItem,
     selectedItemCode,
+    selectedDirectory,
     outPut,
     isLoading,
     isError,
@@ -45,7 +53,6 @@ export default function Editor() {
 
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
-
 
   const handleInputChange = (event:ChangeEvent<HTMLInputElement>) => {
     setTerminalInput(event.target.value);
@@ -58,7 +65,8 @@ export default function Editor() {
         setTerminalOutput([]);
         break;
       case 'ls':
-        setTerminalOutput([...terminalOutput, { type: 'command', value: 'lists!' }]);
+        sendCommand();
+        setTerminalOutput([...terminalOutput, { type: 'command', value: logData }]);
         break;
       default:
         if (terminalInput.startsWith('cd ')) {
@@ -74,6 +82,8 @@ export default function Editor() {
         }
         else if(terminalInput.startsWith('mkdir ')) {
           const input = terminalInput.substring(6);
+          const fullInput = terminalInput;
+          console.log(`${currentDirectory.join('/')} ${fullInput}`);
           dispatch(addNewFolder({input, title}));
         }
         else if (terminalInput) {
@@ -98,9 +108,10 @@ export default function Editor() {
   };
 
   // 선택한 아이템의 아이디와 코드.
-  const handleItemSelect = (id: string, code: string | undefined) => {
+  const handleItemSelect = (id: string, code: string | undefined, directory: any[]) => {
     dispatch(selectItemId(id));
     dispatch(selectItemCode(code));
+    dispatch(selectedDirectoryTest(directory));
   };
 
   const savedCode = () => {
@@ -119,6 +130,8 @@ export default function Editor() {
     if (input) {
       switch (action) {
         case "folder":
+          const fullInput = `mkdir ${selectedDirectory?.join('/')}/${input}`;
+          sendCommandTest("testUsername", fullInput, taskArn, "testProject")
           dispatch(addNewFolder({input, title}));
           break;
         case "file":
@@ -166,7 +179,7 @@ export default function Editor() {
     const childrenFindDirectory = (childrenItem: TreeItemData[], currentDirectory: string[]):boolean => {
       const newDirectory = currentDirectory.concat(terminalInput.substring(3));
       return childrenItem.some((child) => {
-        if(child.treeDirectory?.join("\\") === newDirectory.join("\\")){
+        if(child.treeDirectory?.join("/") === newDirectory.join("/")){
           dispatch(selectItemId(child.id));
           return true;
         }else if(child.children){
@@ -184,8 +197,51 @@ export default function Editor() {
     })
   }
 
+  const getTest = async () => {
+    try{
+      const test = await getContainerDataTest();
+      console.log("test",test);
+      setTaskArn(test[0]);
+      console.log('taskArn',taskArn);
+    }catch(err){
+      return console.error(err);
+    }
+  }
+
+  const socketTest = () => {
+    const socket = new SockJS('https://eb6d-112-218-243-204.ngrok-free.app/websocket');
+    const client = Stomp.over(socket);
+      client.connect({}, () => {
+        console.log('Connected to WebSocket');
+        client.subscribe('/topic/commandOutput', (message) => {
+          const newData = JSON.parse(message.body);
+          const content = newData.content;
+          console.log(content);
+          setLogData([...logData, content]);
+        })
+      });
+  }
+
+  const sendCommand = async () => {
+    try{
+      await commandTest("testUsername","find",taskArn,"testProject");
+    }catch(err){
+      return console.error(err);
+    }
+  }
+
+  const sendCommandTest = async (username: string, command: string, taskArn: string, projectName: string) => {
+    try{
+      await treeTest(username,command,taskArn,projectName);
+    }catch(err){
+      return console.error(err);
+    }
+  }
+
+
   // 폴더 및 파일 외 다른 부분 클릭시 디렉토리 초기화
   useEffect(() => {
+    socketTest();
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
@@ -238,6 +294,14 @@ export default function Editor() {
             }`}
           >
             Run
+          </button>
+          <button
+            onClick={getTest}
+            className={`m-1 border border-green-500 text-green-500 rounded w-[50px] ${
+              isLoading && "disabled border-green-500/60 text-green-500/60"
+            }`}
+          >
+            Test
           </button>
         </div>
 
@@ -339,7 +403,7 @@ export default function Editor() {
               ))}
             </div>
         <form onSubmit={handleInputSubmit}>
-          <span>{`${currentDirectory.join('\\')}>`}</span>
+          <span>{`${currentDirectory.join('/')}>`}</span>
           <input
             type="text"
             value={terminalInput}
@@ -358,7 +422,7 @@ export default function Editor() {
 
 const renderTreeItems = (
   items: TreeItemData[],
-  handleItemSelect: (id: string, code: string | undefined) => void
+  handleItemSelect: (id: string, code: string | undefined, directory: any) => void
 ) => {
   return items.map((item) => (
     <TreeItem
@@ -369,7 +433,7 @@ const renderTreeItems = (
       collapseIcon={<FaRegFolderOpen />}
       expandIcon={<FaRegFolder />}
       onClick={() => {
-        handleItemSelect(item.id, item.code);
+        handleItemSelect(item.id, item.code, item.treeDirectory);
       }}
     >
       {item.children && renderTreeItems(item.children, handleItemSelect)}
