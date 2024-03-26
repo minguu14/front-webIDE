@@ -1,10 +1,12 @@
 import Monaco from "@monaco-editor/react";
 import { useAppSelector } from "../store/hook";
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { CODE_SNIPPETS } from "../option";
 import "../custom-scrollbar.css";
 import { TreeView } from "@mui/x-tree-view";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
+import SockJS from "sockjs-client";
+import Stomp from 'stompjs';
 import { FaRegFolder, FaRegFolderOpen } from "react-icons/fa";
 import { RiFolderAddLine, RiDeleteBinLine } from "react-icons/ri";
 import { FaRegFile } from "react-icons/fa";
@@ -20,19 +22,30 @@ import {
   selectItemId,
   selectItemCode,
   getEditorCode,
+  selectedDirectoryTest,
 } from "../store/editorSlice/editorSlice";
 import chatIcon from "../img/chatIcon.png";
 import Chat from "../components/Modal/Chat";
+import { commandTest, getContainerDataTest, treeTest } from "../api/editor";
 
 export default function Editor() {
   const [showChat, setShowChat] = useState(false);
+  const [isConsole, setIsConsole] = useState(true);
+  const [isTerminal, setIsTerminal] = useState(false);
+  const [terminalInput, setTerminalInput] = useState<any>('');
+  const [terminalOutput, setTerminalOutput] = useState<any>([]);
+  const [stompClient, setStompClient] = useState(null);
+  const [taskArn, setTaskArn] = useState("");
+  const [logData, setLogData] = useState<any>([]);
   const { title, stack, performance } = useAppSelector(
     (state) => state.container.clickedContainer
   );
+  const [currentDirectory, setCurrentDirectory] = useState([""]);
   const {
     treeItems,
     selectedItem,
     selectedItemCode,
+    selectedDirectory,
     outPut,
     isLoading,
     isError,
@@ -40,6 +53,48 @@ export default function Editor() {
 
   const editorRef = useRef<any>();
   const dispatch = useDispatch();
+
+  const handleInputChange = (event:ChangeEvent<HTMLInputElement>) => {
+    setTerminalInput(event.target.value);
+  };
+
+  const handleInputSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    switch (terminalInput){
+      case 'clear':
+        setTerminalOutput([]);
+        break;
+      case 'ls':
+        sendCommand();
+        setTerminalOutput([...terminalOutput, { type: 'command', value: logData }]);
+        break;
+      default:
+        if (terminalInput.startsWith('cd ')) {
+          if(findDirectory(terminalInput) && !terminalInput.includes('.')){
+            setCurrentDirectory([...currentDirectory, terminalInput.substring(3)]);
+          }else if(terminalInput.substring(3) === '../') {
+            currentDirectory.pop();
+            currentDirectory.join("") === title && dispatch(selectItemId(""));
+            setCurrentDirectory(currentDirectory);
+          }else {
+            setTerminalOutput([...terminalOutput, {type: 'input', value: 'Invalid terminal input'}]);
+          }
+        }
+        else if(terminalInput.startsWith('mkdir ')) {
+          const input = terminalInput.substring(6);
+          const fullInput = terminalInput;
+          console.log(`${currentDirectory.join('/')} ${fullInput}`);
+          dispatch(addNewFolder({input, title}));
+        }
+        else if (terminalInput) {
+          setTerminalOutput([...terminalOutput, { type: 'input', value: terminalInput }]);
+        }
+        break;
+    }
+
+    // 결과
+    setTerminalInput('');
+  };
 
   const onMount = (editor: any) => {
     editorRef.current = editor;
@@ -53,16 +108,17 @@ export default function Editor() {
   };
 
   // 선택한 아이템의 아이디와 코드.
-  const handleItemSelect = (id: string, code: string | undefined) => {
+  const handleItemSelect = (id: string, code: string | undefined, directory: any[]) => {
     dispatch(selectItemId(id));
     dispatch(selectItemCode(code));
+    dispatch(selectedDirectoryTest(directory));
   };
 
   const savedCode = () => {
     dispatch(updateCode(selectedItem));
   };
 
-  // 버튼 액션.
+  //버튼 액션.
   const handleAction = (action: "folder" | "file" | "delete") => {
     if (action === "delete") {
       dispatch(deleteItem(selectedItem));
@@ -74,7 +130,9 @@ export default function Editor() {
     if (input) {
       switch (action) {
         case "folder":
-          dispatch(addNewFolder(input));
+          const fullInput = `mkdir ${selectedDirectory?.join('/')}/${input}`;
+          sendCommandTest("testUsername", fullInput, taskArn, "testProject")
+          dispatch(addNewFolder({input, title}));
           break;
         case "file":
           dispatch(addNewFile(input));
@@ -85,8 +143,105 @@ export default function Editor() {
     }
   };
 
+  const handleConsole = (isCheck: boolean) => {
+    if(isCheck === isTerminal){
+      setIsConsole(false);
+      setIsTerminal(true);
+    } else {
+      setIsConsole(true);
+      setIsTerminal(false);
+    }
+  }
+
+  // 파일 생성 체크.
+  const findText = ():boolean => {
+
+    const childrenFindText = (childrenItem: TreeItemData[]):boolean => {
+      return childrenItem.some((child) => {
+        if(child.type === "text"){
+          return true;
+        }else if(child.children){
+          return childrenFindText(child.children);
+        }
+      })
+    }
+
+   return treeItems.some((item) => {
+      if(item.type === "text"){
+        return true;
+      } else if(item.children){
+        return childrenFindText(item.children);
+      }
+    })
+  }
+
+  const findDirectory = (terminalInput: string):boolean => {
+    const childrenFindDirectory = (childrenItem: TreeItemData[], currentDirectory: string[]):boolean => {
+      const newDirectory = currentDirectory.concat(terminalInput.substring(3));
+      return childrenItem.some((child) => {
+        if(child.treeDirectory?.join("/") === newDirectory.join("/")){
+          dispatch(selectItemId(child.id));
+          return true;
+        }else if(child.children){
+          return childrenFindDirectory(child.children, currentDirectory);
+        }
+      })
+    }
+   return treeItems.some((item) => {
+      if(item.label === terminalInput.substring(3) && currentDirectory.length < 2){
+        dispatch(selectItemId(item.id));
+        return true;
+      } else if(item.children){
+        return childrenFindDirectory(item.children, currentDirectory);
+      }
+    })
+  }
+
+  const getTest = async () => {
+    try{
+      const test = await getContainerDataTest();
+      console.log("test",test);
+      setTaskArn(test[0]);
+      console.log('taskArn',taskArn);
+    }catch(err){
+      return console.error(err);
+    }
+  }
+
+  const socketTest = () => {
+    const socket = new SockJS('https://eb6d-112-218-243-204.ngrok-free.app/websocket');
+    const client = Stomp.over(socket);
+      client.connect({}, () => {
+        console.log('Connected to WebSocket');
+        client.subscribe('/topic/commandOutput', (message) => {
+          const newData = JSON.parse(message.body);
+          const content = newData.content;
+          console.log(content);
+          setLogData([...logData, content]);
+        })
+      });
+  }
+
+  const sendCommand = async () => {
+    try{
+      await commandTest("testUsername","find",taskArn,"testProject");
+    }catch(err){
+      return console.error(err);
+    }
+  }
+
+  const sendCommandTest = async (username: string, command: string, taskArn: string, projectName: string) => {
+    try{
+      await treeTest(username,command,taskArn,projectName);
+    }catch(err){
+      return console.error(err);
+    }
+  }
+
+
   // 폴더 및 파일 외 다른 부분 클릭시 디렉토리 초기화
   useEffect(() => {
+    socketTest();
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
@@ -94,9 +249,7 @@ export default function Editor() {
         dispatch(selectItemId(null));
       }
     };
-
     document.addEventListener("click", handleOutsideClick);
-
     return () => {
       document.removeEventListener("click", handleOutsideClick);
     };
@@ -141,6 +294,14 @@ export default function Editor() {
             }`}
           >
             Run
+          </button>
+          <button
+            onClick={getTest}
+            className={`m-1 border border-green-500 text-green-500 rounded w-[50px] ${
+              isLoading && "disabled border-green-500/60 text-green-500/60"
+            }`}
+          >
+            Test
           </button>
         </div>
 
@@ -193,7 +354,8 @@ export default function Editor() {
 
         {/* 편집기 */}
         <div className="w-[85%]" onClick={handleEditorClick}>
-          <div className="h-[70%]">
+          <div className="h-[70%] flex justify-center items-center">
+            { findText() ?
             <Monaco
               theme="vs-dark"
               language={stack}
@@ -204,15 +366,21 @@ export default function Editor() {
               }
               onMount={onMount}
             />
+            : <p className="text-green-500">파일을 생성하세요!</p>
+            }
           </div>
 
           {/* 콘솔 */}
           <div className="h-[30%] overflow-y-auto">
             <header className="w-full bg-black flex items-center fixed">
-              <div className="bg-black w-[100px] p-[5px] border-t-2 border-blue-500">
+              <button className={`bg-black w-[100px] p-[5px] border-t-2 ${isConsole && "border-blue-500"} `} onClick={() => handleConsole(isConsole)}>
                 Console
-              </div>
+              </button>
+              <button className={`bg-black w-[100px] p-[5px] border-t-2 ${isTerminal && "border-blue-500"}`} onClick={() => handleConsole(isTerminal)}>
+                Terminal
+              </button>
             </header>
+            {isConsole ?
             <div className="p-3 mt-8">
               {outPut &&
                 outPut.map((line: string, i: number) => (
@@ -221,6 +389,30 @@ export default function Editor() {
                   </p>
                 ))}
             </div>
+            :
+            <div className="p-3 mt-8">
+              <div>
+              {terminalOutput.map((item:any, index:any) => (
+                <div key={index}>
+                  {item.type === 'input' ? (
+                    <span>{item.value}</span>
+                  ) : (
+                    <span className="text-green-500">{item.value}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+        <form onSubmit={handleInputSubmit}>
+          <span>{`${currentDirectory.join('/')}>`}</span>
+          <input
+            type="text"
+            value={terminalInput}
+            onChange={handleInputChange}
+            className="text-white bg-black/0 focus:outline-none ml-1 w-[1200px]"
+            autoFocus
+          />
+        </form>
+          </div>}
           </div>
         </div>
       </div>
@@ -230,7 +422,7 @@ export default function Editor() {
 
 const renderTreeItems = (
   items: TreeItemData[],
-  handleItemSelect: (id: string, code: string | undefined) => void
+  handleItemSelect: (id: string, code: string | undefined, directory: any) => void
 ) => {
   return items.map((item) => (
     <TreeItem
@@ -241,10 +433,11 @@ const renderTreeItems = (
       collapseIcon={<FaRegFolderOpen />}
       expandIcon={<FaRegFolder />}
       onClick={() => {
-        handleItemSelect(item.id, item.code);
+        handleItemSelect(item.id, item.code, item.treeDirectory);
       }}
     >
       {item.children && renderTreeItems(item.children, handleItemSelect)}
     </TreeItem>
   ));
 };
+
