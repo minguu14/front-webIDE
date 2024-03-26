@@ -15,6 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const router = useNavigate();
 
+  const dispatch = useAppDispatch();
   //로그인 유지
   useEffect(() => {
     const accessToken = localStorage.getItem("access");
@@ -36,9 +37,25 @@ export default function Login() {
         localStorage.setItem("access", accessToken);
         localStorage.setItem("refresh", refreshToken);
       }
+
       router("/container");
     }
     console.log(result);
+    // 받아온 데이터를 이용하여 setUser 액션을 디스패치
+    dispatch(
+      setUser({
+        name: result.name,
+        email: result.email,
+        username: result.username,
+        birth: result.birth,
+      })
+    );
+  };
+
+  const handleKeyPress = (e: any) => {
+    if (e.key === "Enter") {
+      onClick();
+    }
   };
 
   // const loginButton = () => {

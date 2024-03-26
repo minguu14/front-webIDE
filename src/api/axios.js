@@ -1,6 +1,10 @@
 import axios from "axios";
+import { setUser } from "../store/reducers/userSlice";
+import { useAppDispatch, useAppSelector } from "../store/hook";
+
 //로그인
-export const login = async (username, password) => {
+export const login = async (username, password, dispatch) => {
+  // dispatch 파라미터 추가
   try {
     const result = await axios.post("http://43.202.87.84/members/login", {
       username,
