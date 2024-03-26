@@ -1,8 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import sendButton from "../../img/sendButton.png";
+import { Client, IMessage } from "@stomp/stompjs";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
+import SockJS from "sockjs-client";
+interface ChatMessageReqeust {
+  from: string;
+  text: string;
+  roomId: number;
+}
+interface ChatMessageResponse {
+  id: number;
+  content: string;
+  writer: string;
+}
 
 export default function Chat() {
   const [chatValue, setCahtValue] = useState("");
+  const { roomId } = useParams();
+  const [stompClient, setStompClient] = useState<Client | null>(null);
+  const [messages, setMessages] = useState<ChatMessageResponse[]>([]);
+  const [writer, setWriter] = useState<string>("");
+  const [newMessage, setNewMessage] = useState<string>("");
+
   return (
     <div>
       <div className=" absolute top-11 right-2 w-[30%] h-4/5 rounded-2xl bg-gradient-to-r to-cyan-500 from-blue-500 z-50 ">
