@@ -7,6 +7,7 @@ import { setUser } from "../store/reducers/userSlice";
 import { signup } from "../store/reducers/usersSlice";
 import { useAppDispatch, useAppSelector } from "../store/hook";
 import FailPopUp from "../components/FailPopUp";
+import logo from "../img/logo/ADHD Aspire, Dream, Honor, Discover.png";
 
 export default function Login() {
   const [stillLogin, setStillLogin] = useState<boolean>(false);
@@ -84,7 +85,7 @@ export default function Login() {
         }`}
       >
         <div className=" flex flex-col items-center">
-          <div>Logo</div>
+          <img src={logo} alt="" className="w-[100px] mb-2" />
           <div className="font-medium mb-12">
             회원이 아니신가요?
             <Link to="/membership" className="text-sky-500 font-semibold pl-2">
