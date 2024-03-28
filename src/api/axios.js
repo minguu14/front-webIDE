@@ -72,3 +72,65 @@ export const changeUserPassword = async (userid, changePw) => {
   );
   return response.data;
 };
+
+// 챗팅 방만들기
+export const createRoom = async (roomName, userid) => {
+  try {
+    const response = await axios.post(
+      "http://popos.iptime.org:8080/chat/createRoom",
+      { name: roomName }
+    );
+    console.log(roomName);
+    return response.data;
+  } catch {
+    console.log(userid);
+    console.log(roomName);
+    return "failed to login";
+  }
+};
+
+//챗팅방
+// params
+export const userRooms = async (userid) => {
+  try {
+    const response = await axios.get(
+      `http://popos.iptime.org:8080/chat/roomsByUser/${userid}`
+    );
+    console.log(response.data);
+    return response.data;
+  } catch {
+    console.log("Error fetching rooms");
+    return "error";
+  }
+};
+
+// 챗팅방 들어가기
+export const joinRoomByName = async (roomName, userId) => {
+  try {
+    const response = await axios.post(
+      "http://popos.iptime.org:8080/chat/joinRoomByName",
+      { roomName: roomName, userId: userId } // 키 이름을 백엔드와 일치시킵니다.
+    );
+    console.log(roomName);
+    console.log(userId);
+    return response.data;
+  } catch (error) {
+    console.error("Error joining room:", error);
+    return "failed to join room";
+  }
+};
+
+// 채팅방 데이터 불러오기
+export const chatHistory = async (roomId) => {
+  try {
+    const response = await axios.get(
+      `http://popos.iptime.org:8080/chat/chatHistory/${roomId}`
+    );
+    console.log(roomId);
+
+    return response.data;
+  } catch {
+    console.log("Error fetching rooms");
+    return "error";
+  }
+};
