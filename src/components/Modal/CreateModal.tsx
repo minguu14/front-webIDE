@@ -1,6 +1,6 @@
 import { useState } from "react";
 import cancelIcon from "../../img/containerPage/icon_cancel.png";
-import { useAppDispatch } from "../../store/hook";
+import { useAppDispatch, useAppSelector } from "../../store/hook";
 import { createContainer } from "../../store/containerSlice/containerSlice";
 import { v4 } from "uuid";
 import { OpenCreateModal } from "../../store/modalSlice/modalSlice";
@@ -11,6 +11,9 @@ export default function CreateModal() {
   const [containerTitle, setContainerTitle] = useState("");
   const [performance, setPerformance] = useState("@ 0.5vCPU @ 1GB");
   const [titleCheck, setTitleCheck] = useState(false);
+  const user = useAppSelector((state) => state.persist.user);
+  const [username] = user.map((data: any) => data.username);
+  
   const dispatch = useAppDispatch();
 
   const closeCreateModal = () => {
@@ -18,7 +21,7 @@ export default function CreateModal() {
   };
 
   const createContainers = async () => {
-    const test = await createContainerTest("testUsername","testProject","java","1024","3072");
+    const test = await createContainerTest(username,containerTitle,stack,"1024","3072");
     console.log(test);
     if (!titleCheck) {
       const newData = {

@@ -20,7 +20,7 @@ type EditorState = {
     treeItems: TreeItemData[];
     selectedItem: string | null;
     selectedItemCode: string | undefined;
-    selectedDirectory: any[] | undefined;
+    directory: string[] | undefined;
     outPut: string[];
     isLoading: boolean;
     isError: boolean;
@@ -30,8 +30,8 @@ const initialState: EditorState = {
     treeItems: [],
     selectedItem: "",
     selectedItemCode: "",
-    selectedDirectory: [],
-    outPut: [""],
+    directory: [""],
+    outPut: [],
     isLoading: false,
     isError: false,
 }
@@ -130,12 +130,14 @@ export const editorSlice = createSlice({
                       return child;
                 })
             }
-
             if(action.payload?.includes(".")){
+                const dir = state.directory;
+                dir?.push(action.payload)
                 const newFile: TreeItemData = {
                   id: v4(),
                   type: "text",
                   label: action.payload,
+                  treeDirectory: dir,
                   code: "",
                   icon: "file",
                 };
@@ -170,8 +172,8 @@ export const editorSlice = createSlice({
         selectItemCode: (state, action) => {
             state.selectedItemCode = action.payload;
         },
-        selectedDirectoryTest: (state, action) => {
-            state.selectedDirectory = action.payload;
+        clickedDirectory: (state, action) => {
+            state.directory = action.payload;
         },
         updateCode: (state, action) => {
           const save = (items: TreeItemData[], itemId: string | null) => {
@@ -216,5 +218,5 @@ export const editorSlice = createSlice({
 })
 
 
-export const { addNewFolder, addNewFile, selectItemId, selectedDirectoryTest, getEditorCode, deleteItem, updateCode, selectItemCode, isOutputError } = editorSlice.actions;
+export const { addNewFolder, addNewFile, selectItemId, clickedDirectory, getEditorCode, deleteItem, updateCode, selectItemCode, isOutputError } = editorSlice.actions;
 export default editorSlice.reducer;
