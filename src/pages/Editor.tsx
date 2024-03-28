@@ -1,7 +1,6 @@
 import Monaco from "@monaco-editor/react";
 import { useAppSelector } from "../store/hook";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { CODE_SNIPPETS } from "../option";
 import "../custom-scrollbar.css";
 import { TreeView } from "@mui/x-tree-view";
 import { TreeItem } from "@mui/x-tree-view/TreeItem";
@@ -22,11 +21,11 @@ import {
   selectItemId,
   selectItemCode,
   getEditorCode,
-  selectedDirectoryTest,
+  clickedDirectory,
 } from "../store/editorSlice/editorSlice";
 import chatIcon from "../img/chatIcon.png";
 import Chat from "../components/Modal/Chat";
-import { commandTest, getContainerDataTest, treeTest } from "../api/editor";
+import { commandTest, createCommand, getConsole, getContainerData, treeCommand } from "../api/editor";
 
 export default function Editor() {
   const [showChat, setShowChat] = useState(false);
@@ -36,7 +35,9 @@ export default function Editor() {
   const [terminalOutput, setTerminalOutput] = useState<any>([]);
   const [stompClient, setStompClient] = useState(null);
   const [taskArn, setTaskArn] = useState("");
-  const [logData, setLogData] = useState<any>([]);
+  const [logData, setLogData] = useState<any>();
+  const user = useAppSelector((state) => state.persist.user);
+  const [username] = user.map((data: any) => data.username);
   const { title, stack, performance } = useAppSelector(
     (state) => state.container.clickedContainer
   );
@@ -45,7 +46,7 @@ export default function Editor() {
     treeItems,
     selectedItem,
     selectedItemCode,
-    selectedDirectory,
+    directory,
     outPut,
     isLoading,
     isError,
@@ -65,7 +66,7 @@ export default function Editor() {
         setTerminalOutput([]);
         break;
       case 'ls':
-        sendCommand();
+        //sendCommand();
         setTerminalOutput([...terminalOutput, { type: 'command', value: logData }]);
         break;
       default:
@@ -82,8 +83,6 @@ export default function Editor() {
         }
         else if(terminalInput.startsWith('mkdir ')) {
           const input = terminalInput.substring(6);
-          const fullInput = terminalInput;
-          console.log(`${currentDirectory.join('/')} ${fullInput}`);
           dispatch(addNewFolder({input, title}));
         }
         else if (terminalInput) {
@@ -100,22 +99,24 @@ export default function Editor() {
     editorRef.current = editor;
     editor.focus();
   };
-
+  
   const runCode = async () => {
     const sourceCode = editorRef.current.getValue();
     if (!sourceCode) return;
-    dispatch(fetchCode({ stack, sourceCode }));
+    await consoleTest();
+    //dispatch(fetchCode({ stack, sourceCode }));
   };
 
   // 선택한 아이템의 아이디와 코드.
   const handleItemSelect = (id: string, code: string | undefined, directory: any[]) => {
     dispatch(selectItemId(id));
     dispatch(selectItemCode(code));
-    dispatch(selectedDirectoryTest(directory));
+    dispatch(clickedDirectory(directory));
   };
 
   const savedCode = () => {
     dispatch(updateCode(selectedItem));
+    sendCreateCommand();
   };
 
   //버튼 액션.
@@ -130,8 +131,9 @@ export default function Editor() {
     if (input) {
       switch (action) {
         case "folder":
-          const fullInput = `mkdir ${selectedDirectory?.join('/')}/${input}`;
-          sendCommandTest("testUsername", fullInput, taskArn, "testProject")
+          const fullInput = `mkdir ${directory?.join('/')}/${input}`;
+          console.log(fullInput);
+          addFolderCommand(username, fullInput, taskArn, "zxcTes");
           dispatch(addNewFolder({input, title}));
           break;
         case "file":
@@ -160,7 +162,7 @@ export default function Editor() {
       return childrenItem.some((child) => {
         if(child.type === "text"){
           return true;
-        }else if(child.children){
+        }else if(child.children){ 
           return childrenFindText(child.children);
         }
       })
@@ -197,18 +199,26 @@ export default function Editor() {
     })
   }
 
-  const getTest = async () => {
+  const getTaskArn = async () => {
     try{
-      const test = await getContainerDataTest();
-      console.log("test",test);
-      setTaskArn(test[0]);
-      console.log('taskArn',taskArn);
+      const [taskArn] = await getContainerData();
+      setTaskArn(taskArn);
     }catch(err){
       return console.error(err);
     }
   }
 
-  const socketTest = () => {
+  const consoleTest = async () => {
+    try{
+      const test = await getConsole(directory?.join('/'), taskArn, "zxcTes");
+      console.log(test);
+    }catch(err){
+      return console.error(err);
+    }
+  }
+  
+  const socket = () => {
+    getTaskArn();
     const socket = new SockJS('https://eb6d-112-218-243-204.ngrok-free.app/websocket');
     const client = Stomp.over(socket);
       client.connect({}, () => {
@@ -216,23 +226,31 @@ export default function Editor() {
         client.subscribe('/topic/commandOutput', (message) => {
           const newData = JSON.parse(message.body);
           const content = newData.content;
-          console.log(content);
-          setLogData([...logData, content]);
+          setTerminalOutput([...terminalOutput,{type: 'command', value: content}]);
         })
       });
   }
-
+console.log(terminalOutput);
   const sendCommand = async () => {
     try{
-      await commandTest("testUsername","find",taskArn,"testProject");
+      await commandTest(username,"ls",taskArn,"zxcTes");
     }catch(err){
       return console.error(err);
     }
   }
 
-  const sendCommandTest = async (username: string, command: string, taskArn: string, projectName: string) => {
+  const sendCreateCommand = async () => {
     try{
-      await treeTest(username,command,taskArn,projectName);
+      const test = selectedItemCode?.replace(/(\r\n|\n|\r)/gm, "");
+      await createCommand(username, test?.replace(/"/g, '\\"'), taskArn, "zxcTes", directory?.join('/'));
+    }catch(err) {
+      return console.error(err);
+    }
+  }
+
+  const addFolderCommand = async (username: string, command: string, taskArn: string, projectName: string) => {
+    try{
+      await treeCommand(username,command,taskArn,projectName);
     }catch(err){
       return console.error(err);
     }
@@ -241,12 +259,13 @@ export default function Editor() {
 
   // 폴더 및 파일 외 다른 부분 클릭시 디렉토리 초기화
   useEffect(() => {
-    socketTest();
+    socket();
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      if (!target.closest(".MuiTreeView-root")) {
+      if (!target.closest(".MuiTreeView-root")&&!target.closest("button")) {
         dispatch(selectItemId(null));
+        dispatch(clickedDirectory([""]));
       }
     };
     document.addEventListener("click", handleOutsideClick);
@@ -295,14 +314,6 @@ export default function Editor() {
           >
             Run
           </button>
-          <button
-            onClick={getTest}
-            className={`m-1 border border-green-500 text-green-500 rounded w-[50px] ${
-              isLoading && "disabled border-green-500/60 text-green-500/60"
-            }`}
-          >
-            Test
-          </button>
         </div>
 
         <div>
@@ -319,7 +330,7 @@ export default function Editor() {
         <nav className="w-[15%] h-full border-2 border-black">
           <div className="bg-blue-500 h-[4%] flex justify-between items-center">
             <div className="ml-2">{title}</div>
-            <div className="mr-2">
+            <div className="mr-2 mt-1">
               <button
                 className="mr-1 text-[20px]"
                 onClick={() => handleAction("folder")}
@@ -359,7 +370,6 @@ export default function Editor() {
             <Monaco
               theme="vs-dark"
               language={stack}
-              // defaultValue={CODE_SNIPPETS[stack]}
               value={selectedItemCode}
               onChange={(selectedItemCode) =>
                 dispatch(getEditorCode(selectedItemCode))

@@ -21,6 +21,7 @@ export default function InfoModal() {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     localStorage.removeItem("persist:root");
+    closeInfoModal();
     dispatch(logout());
     route("/");
   };
